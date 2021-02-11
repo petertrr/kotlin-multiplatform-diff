@@ -1,3 +1,4 @@
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.getCurrentOperatingSystem
 import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
 
 plugins {
@@ -15,6 +16,18 @@ repositories {
 
 kotlin {
     jvm()
+    js(IR) {
+        browser()
+        nodejs()
+    }
+    // setup native compilation
+    val os = getCurrentOperatingSystem()
+    val hostTarget = when {
+        os.isLinux -> linuxX64()
+        os.isWindows -> mingwX64()
+        else -> throw GradleException("Host OS '${os.name}' is not supported in Kotlin/Native $project.")
+    }
+
     sourceSets {
         val commonTest by getting {
             dependencies {
@@ -26,6 +39,12 @@ kotlin {
         val jvmTest by getting {
             dependencies {
                 implementation(kotlin("test-junit5"))
+                implementation("org.junit.jupiter:junit-jupiter-engine:5.0.0")
+            }
+        }
+        val jsTest by getting {
+            dependencies {
+                implementation(kotlin("test-js"))
             }
         }
     }
@@ -35,6 +54,10 @@ publishing {
     repositories {
         mavenLocal()
     }
+}
+
+tasks.withType<KotlinJvmTest> {
+    useJUnitPlatform()
 }
 
 // configure Jacoco-based code coverage reports for JVM tests executions
