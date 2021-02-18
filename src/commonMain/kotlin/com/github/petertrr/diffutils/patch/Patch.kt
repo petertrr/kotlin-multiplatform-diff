@@ -25,8 +25,12 @@ import io.github.petertrr.diffutils.algorithm.Change
  *
  * @param T The type of the compared elements in the 'lines'.
  */
-class Patch<T>(estimatedPatchSize: Int = 10) {
-    private val deltas: MutableList<Delta<T>> = arrayListOf()
+public class Patch<T>(estimatedPatchSize: Int = 10) {
+    public var deltas: MutableList<Delta<T>> = arrayListOf()
+        get() {
+            field.sortBy { it.source.position }
+            return field
+        }
 
     /**
      * Apply this patch to the given target
@@ -34,9 +38,9 @@ class Patch<T>(estimatedPatchSize: Int = 10) {
      * @return the patched text
      */
     @Throws(PatchFailedException::class)
-    fun applyTo(target: List<T>): List<T> {
+    public fun applyTo(target: List<T>): List<T> {
         val result = target.toMutableList()
-        val it = getDeltas().listIterator(deltas.size)
+        val it = deltas.listIterator(deltas.size)
         while (it.hasPrevious()) {
             val delta = it.previous()
             delta.applyTo(result)
@@ -50,9 +54,9 @@ class Patch<T>(estimatedPatchSize: Int = 10) {
      * @param target the given target
      * @return the restored text
      */
-    fun restore(target: List<T>): List<T> {
+    public fun restore(target: List<T>): List<T> {
         val result = target.toMutableList()
-        val it = getDeltas().listIterator(deltas.size)
+        val it = deltas.listIterator(deltas.size)
         while (it.hasPrevious()) {
             val delta = it.previous()
             delta.restore(result)
@@ -65,29 +69,14 @@ class Patch<T>(estimatedPatchSize: Int = 10) {
      *
      * @param delta the given delta
      */
-    fun addDelta(delta: Delta<T>) = deltas.add(delta)
-
-    /**
-     * Get the list of computed deltas
-     *
-     * @return the deltas
-     */
-    fun getDeltas(): List<Delta<T>> {
-        deltas.sortBy { it.source.position }
-        return deltas
-    }
-
-    fun setDeltas(newDeltas: List<Delta<T>>) {
-        deltas.clear()
-        deltas.addAll(newDeltas)
-    }
+    public fun addDelta(delta: Delta<T>): Boolean = deltas.add(delta)
 
     override fun toString(): String {
         return "Patch{deltas=$deltas}"
     }
 
-    companion object {
-        fun <T> generate(original: List<T>, revised: List<T>, changes: List<Change>): Patch<T> {
+    public companion object {
+        public fun <T> generate(original: List<T>, revised: List<T>, changes: List<Change>): Patch<T> {
             return generate(original, revised, changes, false)
         }
 
@@ -95,7 +84,7 @@ class Patch<T>(estimatedPatchSize: Int = 10) {
             return Chunk(start, data.subList(start, end))
         }
 
-        fun <T> generate(original: List<T>, revised: List<T>, _changes: List<Change>, includeEquals: Boolean): Patch<T> {
+        public fun <T> generate(original: List<T>, revised: List<T>, _changes: List<Change>, includeEquals: Boolean): Patch<T> {
             val patch = Patch<T>(_changes.size)
             var startOriginal = 0
             var startRevised = 0

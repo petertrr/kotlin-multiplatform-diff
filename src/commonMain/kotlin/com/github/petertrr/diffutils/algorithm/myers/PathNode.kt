@@ -21,7 +21,7 @@ package io.github.petertrr.diffutils.algorithm.myers
 /**
  * A node in a diffpath.
  */
-class PathNode(
+internal class PathNode(
     /**
      * Position in the original sequence.
      */

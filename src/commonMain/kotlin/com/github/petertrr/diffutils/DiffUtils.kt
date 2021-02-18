@@ -25,7 +25,6 @@ package io.github.petertrr.diffutils
 import io.github.petertrr.diffutils.algorithm.DiffAlgorithm
 import io.github.petertrr.diffutils.algorithm.DiffAlgorithmListener
 import io.github.petertrr.diffutils.algorithm.myers.MyersDiff
-import io.github.petertrr.diffutils.patch.Chunk
 import io.github.petertrr.diffutils.patch.Patch
 import io.github.petertrr.diffutils.patch.PatchFailedException
 
@@ -39,22 +38,22 @@ import io.github.petertrr.diffutils.patch.PatchFailedException
  * @param progress progress listener
  * @return The patch describing the difference between the original and revised sequences.
  */
-fun <T> diff(original: List<T>, revised: List<T>, progress: DiffAlgorithmListener?): Patch<T> {
+public fun <T> diff(original: List<T>, revised: List<T>, progress: DiffAlgorithmListener?): Patch<T> {
     return diff(original, revised, MyersDiff<T>(), progress)
 }
 
-fun <T> diff(original: List<T>, revised: List<T>): Patch<T> {
+public fun <T> diff(original: List<T>, revised: List<T>): Patch<T> {
     return diff(original, revised, MyersDiff(), null)
 }
 
-fun <T> diff(original: List<T>, revised: List<T>, includeEqualParts: Boolean): Patch<T> {
+public fun <T> diff(original: List<T>, revised: List<T>, includeEqualParts: Boolean): Patch<T> {
     return diff(original, revised, MyersDiff(), null, includeEqualParts)
 }
 
 /**
  * Computes the difference between the original and revised text.
  */
-fun diff(sourceText: String, targetText: String,
+public fun diff(sourceText: String, targetText: String,
          progress: DiffAlgorithmListener?): Patch<String> {
     return diff(sourceText.split("\n"),
         targetText.split("\n"),
@@ -73,7 +72,7 @@ fun diff(sourceText: String, targetText: String,
  * (Object.equals). If `null` the default equalizer of the default algorithm is used..
  * @return The patch describing the difference between the original and revised sequences.
  */
-fun <T> diff(
+public fun <T> diff(
     source: List<T>, target: List<T>,
     equalizer: ((T, T) -> Boolean)?
 ): Patch<T> {
@@ -85,7 +84,7 @@ fun <T> diff(
     } else diff(source, target, MyersDiff())
 }
 
-fun <T> diff(
+public fun <T> diff(
     original: List<T>, revised: List<T>,
     algorithm: DiffAlgorithm<T>, progress: DiffAlgorithmListener?
 ): Patch<T> {
@@ -104,7 +103,7 @@ fun <T> diff(
  * @return The patch describing the difference between the original and revised sequences. Never
  * `null`.
  */
-fun <T> diff(
+public fun <T> diff(
     original: List<T>, revised: List<T>,
     algorithm: DiffAlgorithm<T>, progress: DiffAlgorithmListener?,
     includeEqualParts: Boolean
@@ -122,7 +121,7 @@ fun <T> diff(
  * @return The patch describing the difference between the original and revised sequences. Never
  * `null`.
  */
-fun <T> diff(original: List<T>, revised: List<T>, algorithm: DiffAlgorithm<T>): Patch<T> {
+public fun <T> diff(original: List<T>, revised: List<T>, algorithm: DiffAlgorithm<T>): Patch<T> {
     return diff(original, revised, algorithm, null)
 }
 
@@ -135,7 +134,7 @@ fun <T> diff(original: List<T>, revised: List<T>, algorithm: DiffAlgorithm<T>): 
  * @param revised
  * @return
  */
-fun diffInline(original: String, revised: String): Patch<String> {
+public fun diffInline(original: String, revised: String): Patch<String> {
     val origList: MutableList<String> = arrayListOf()
     val revList: MutableList<String> = arrayListOf()
     for (character in original.toCharArray()) {
@@ -145,13 +144,13 @@ fun diffInline(original: String, revised: String): Patch<String> {
         revList.add(character.toString())
     }
     val patch: Patch<String> = diff(origList, revList)
-    patch.getDeltas().map { delta ->
+    patch.deltas.map { delta ->
         delta.withChunks(
             delta.source.copy(lines = compressLines(delta.source.lines, "")),
             delta.target.copy(lines = compressLines(delta.target.lines, ""))
         )
     }
-        .let { patch.setDeltas(it) }
+        .let { patch.deltas = it.toMutableList() }
     return patch
 }
 
@@ -170,7 +169,7 @@ private fun compressLines(lines: List<String>, delimiter: String): List<String> 
  * @throws PatchFailedException if can't apply patch
  */
 @kotlin.Throws(PatchFailedException::class)
-fun <T> patch(original: List<T>, patch: Patch<T>): List<T> {
+public fun <T> patch(original: List<T>, patch: Patch<T>): List<T> {
     return patch.applyTo(original)
 }
 
@@ -181,6 +180,7 @@ fun <T> patch(original: List<T>, patch: Patch<T>): List<T> {
  * @param patch the given patch
  * @return the original text
  */
-fun <T> unpatch(revised: List<T>, patch: Patch<T>): List<T> {
+@Suppress("UNUSED")
+public fun <T> unpatch(revised: List<T>, patch: Patch<T>): List<T> {
     return patch.restore(revised)
 }

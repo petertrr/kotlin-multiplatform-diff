@@ -33,7 +33,7 @@ package io.github.petertrr.diffutils.patch
  * which is no change at all.
  *
  */
-enum class DeltaType {
+public enum class DeltaType {
     /**
      * A change in the original.
      */
@@ -52,9 +52,9 @@ enum class DeltaType {
     EQUAL
 }
 
-sealed class Delta<T>(val type: DeltaType) {
-    abstract val source: Chunk<T>
-    abstract val target: Chunk<T>
+public sealed class Delta<T>(public val type: DeltaType) {
+    public abstract val source: Chunk<T>
+    public abstract val target: Chunk<T>
 
     /**
      * Verify the chunk of this delta, to fit the target.
@@ -67,16 +67,16 @@ sealed class Delta<T>(val type: DeltaType) {
     }
 
     @Throws(PatchFailedException::class)
-    abstract fun applyTo(target: MutableList<T>)
+    public abstract fun applyTo(target: MutableList<T>)
 
-    abstract fun restore(target: MutableList<T>)
+    public abstract fun restore(target: MutableList<T>)
 
     /**
      * Create a new delta of the actual instance with customized chunk data.
      */
-    abstract fun withChunks(original: Chunk<T>, revised: Chunk<T>): Delta<T>
+    public abstract fun withChunks(original: Chunk<T>, revised: Chunk<T>): Delta<T>
 }
-data class ChangeDelta<T>(override val source: Chunk<T>, override val target: Chunk<T>) : Delta<T>(DeltaType.CHANGE) {
+public data class ChangeDelta<T>(override val source: Chunk<T>, override val target: Chunk<T>) : Delta<T>(DeltaType.CHANGE) {
     override fun applyTo(target: MutableList<T>) {
         verifyChunk(target)
         val position: Int = source.position
@@ -103,7 +103,7 @@ data class ChangeDelta<T>(override val source: Chunk<T>, override val target: Ch
     override fun withChunks(original: Chunk<T>, revised: Chunk<T>): Delta<T> = ChangeDelta(original, revised)
 }
 
-data class DeleteDelta<T>(override val source: Chunk<T>, override val target: Chunk<T>) : Delta<T>(DeltaType.DELETE) {
+public data class DeleteDelta<T>(override val source: Chunk<T>, override val target: Chunk<T>) : Delta<T>(DeltaType.DELETE) {
     override fun applyTo(target: MutableList<T>) {
         verifyChunk(target)
         val position = source.position
@@ -120,10 +120,10 @@ data class DeleteDelta<T>(override val source: Chunk<T>, override val target: Ch
         }
     }
 
-    override fun withChunks(original: Chunk<T>, revised: Chunk<T>) = DeleteDelta(original, revised)
+    override fun withChunks(original: Chunk<T>, revised: Chunk<T>): Delta<T> = DeleteDelta(original, revised)
 }
 
-data class InsertDelta<T>(override val source: Chunk<T>, override val target: Chunk<T>) : Delta<T>(DeltaType.INSERT) {
+public data class InsertDelta<T>(override val source: Chunk<T>, override val target: Chunk<T>) : Delta<T>(DeltaType.INSERT) {
     override fun applyTo(target: MutableList<T>) {
         verifyChunk(target)
         val position = this.source.position
@@ -139,13 +139,13 @@ data class InsertDelta<T>(override val source: Chunk<T>, override val target: Ch
         }
     }
 
-    override fun withChunks(original: Chunk<T>, revised: Chunk<T>) = InsertDelta(original, revised)
+    override fun withChunks(original: Chunk<T>, revised: Chunk<T>): Delta<T> = InsertDelta(original, revised)
 }
 
-data class EqualDelta<T>(override val source: Chunk<T>, override val target: Chunk<T>) : Delta<T>(DeltaType.EQUAL) {
-    override fun applyTo(target: MutableList<T>) = verifyChunk(target)
+public data class EqualDelta<T>(override val source: Chunk<T>, override val target: Chunk<T>) : Delta<T>(DeltaType.EQUAL) {
+    override fun applyTo(target: MutableList<T>): Unit = verifyChunk(target)
 
-    override fun restore(target: MutableList<T>) = Unit
+    override fun restore(target: MutableList<T>): Unit = Unit
 
-    override fun withChunks(original: Chunk<T>, revised: Chunk<T>) = EqualDelta(original, revised)
+    override fun withChunks(original: Chunk<T>, revised: Chunk<T>): Delta<T> = EqualDelta(original, revised)
 }

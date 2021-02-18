@@ -23,7 +23,7 @@ package io.github.petertrr.diffutils.algorithm
  *
  * @param T type of data that is diffed.
  */
-interface DiffAlgorithm<T> {
+public interface DiffAlgorithm<T> {
     /**
      * Computes the changeset to patch the source list to the target list.
      *
@@ -32,7 +32,7 @@ interface DiffAlgorithm<T> {
      * @param progress progress listener
      * @return
      */
-    fun computeDiff(source: List<T>, target: List<T>, progress: DiffAlgorithmListener?): List<Change>
+    public fun computeDiff(source: List<T>, target: List<T>, progress: DiffAlgorithmListener?): List<Change>
 
     /**
      * Simple extension to compute a changeset using arrays.
@@ -42,7 +42,7 @@ interface DiffAlgorithm<T> {
      * @param progress
      * @return
      */
-    fun computeDiff(source: Array<T>, target: Array<T>, progress: DiffAlgorithmListener?): List<Change> {
+    public fun computeDiff(source: Array<T>, target: Array<T>, progress: DiffAlgorithmListener?): List<Change> {
         return computeDiff(source.toList(), target.toList(), progress)
     }
 }

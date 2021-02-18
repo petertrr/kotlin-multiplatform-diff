@@ -21,8 +21,8 @@ package io.github.petertrr.diffutils.text
 /**
  * Describes the diff row in form [tag, oldLine, newLine) for showing the difference between two texts
  */
-data class DiffRow(val tag: Tag, val oldLine: String, val newLine: String) {
-    enum class Tag {
+public data class DiffRow(val tag: Tag, val oldLine: String, val newLine: String) {
+    public enum class Tag {
         INSERT, DELETE, CHANGE, EQUAL
     }
 }

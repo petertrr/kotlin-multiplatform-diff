@@ -27,7 +27,7 @@ package io.github.petertrr.diffutils.patch
  * correctly can be subject to differencing using this library.
  * @param T The type of the compared elements in the 'lines'.
 ) */
-data class Chunk<T>(
+public data class Chunk<T>(
     /**
      * the start position of chunk in the text
      */
@@ -48,7 +48,7 @@ data class Chunk<T>(
      * @throws com.github.difflib.patch.PatchFailedException
      */
     @Throws(PatchFailedException::class)
-    fun verify(target: List<T>) {
+    public fun verify(target: List<T>) {
         if (position > target.size || last() > target.size) {
             throw PatchFailedException("Incorrect Chunk: the position of chunk > target size")
         }
@@ -61,14 +61,14 @@ data class Chunk<T>(
         }
     }
 
-    fun size() = lines.size
+    public fun size(): Int = lines.size
 
     /**
      * Returns the index of the last line of the chunk.
      */
-    fun last(): Int {
+    public fun last(): Int {
         return position + size() - 1
     }
 
-    override fun toString() = "[position: $position, size: ${size()}, lines: $lines]"
+    override fun toString(): String = "[position: $position, size: ${size()}, lines: $lines]"
 }

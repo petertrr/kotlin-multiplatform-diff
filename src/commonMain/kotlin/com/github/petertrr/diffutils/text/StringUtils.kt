@@ -24,15 +24,15 @@ package io.github.petertrr.diffutils.text
  * @param str
  * @return str with some HTML meta characters escaped.
  */
-fun htmlEntities(str: String): String {
+internal fun htmlEntities(str: String): String {
     return str.replace("<", "&lt;").replace(">", "&gt;")
 }
 
-fun normalize(str: String): String {
+internal fun normalize(str: String): String {
     return htmlEntities(str).replace("\t", "    ")
 }
 
-fun wrapText(list: List<String>, columnWidth: Int): List<String> {
+internal fun wrapText(list: List<String>, columnWidth: Int): List<String> {
     return list
         .map { line ->
             wrapText(
@@ -49,7 +49,7 @@ fun wrapText(list: List<String>, columnWidth: Int): List<String> {
  * @param columnWidth the given column
  * @return the wrapped text
  */
-fun wrapText(line: String, columnWidth: Int): String {
+internal fun wrapText(line: String, columnWidth: Int): String {
     require(columnWidth >= 0) { "columnWidth may not be less 0" }
     if (columnWidth == 0) {
         return line

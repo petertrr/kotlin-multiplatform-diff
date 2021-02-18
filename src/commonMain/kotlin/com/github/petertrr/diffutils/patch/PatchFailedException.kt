@@ -18,6 +18,6 @@
  */
 package io.github.petertrr.diffutils.patch
 
-open class DiffException(val msg: String?) : Exception(msg)
+public open class DiffException(msg: String?) : Exception(msg)
 
-class PatchFailedException(msg: String?) : DiffException(msg)
+public class PatchFailedException(msg: String?) : DiffException(msg)

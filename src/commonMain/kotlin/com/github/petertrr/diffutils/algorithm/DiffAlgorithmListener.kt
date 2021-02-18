@@ -18,8 +18,8 @@
  */
 package io.github.petertrr.diffutils.algorithm
 
-interface DiffAlgorithmListener {
-    fun diffStart()
+public interface DiffAlgorithmListener {
+    public fun diffStart()
 
     /**
      * This is a step within the diff algorithm. Due to different implementations the value
@@ -29,6 +29,7 @@ interface DiffAlgorithmListener {
      * @param value
      * @param max
      */
-    fun diffStep(value: Int, max: Int)
-    fun diffEnd()
+    public fun diffStep(value: Int, max: Int)
+
+    public fun diffEnd()
 }

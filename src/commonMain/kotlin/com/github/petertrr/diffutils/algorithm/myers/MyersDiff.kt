@@ -26,7 +26,7 @@ import io.github.petertrr.diffutils.patch.DeltaType
 /**
  * A clean-room implementation of Eugene Myers greedy differencing algorithm.
  */
-class MyersDiff<T>(private val equalizer: (T, T) -> Boolean = { t1, t2 -> t1 == t2 }) : DiffAlgorithm<T> {
+internal class MyersDiff<T>(private val equalizer: (T, T) -> Boolean = { t1, t2 -> t1 == t2 }) : DiffAlgorithm<T> {
     /**
      * Return empty diff if get the error while procession the difference.
      */

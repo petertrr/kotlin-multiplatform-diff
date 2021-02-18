@@ -30,43 +30,44 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * This class for generating DiffRows for side-by-sidy view. You can customize
+ * This class for generating DiffRows for side-by-side view. You can customize
  * the way of generating. For example, show inline diffs on not, ignoring white
  * spaces or/and blank lines and so on. All parameters for generating are
  * optional. If you do not specify them, the class will use the default values.
  *
- * These values are: showInlineDiffs = false; ignoreWhiteSpaces = true;
- * ignoreBlankLines = true; ...
+ * These values are: showInlineDiffs = false; ignoreWhiteSpaces = true; mergeOriginalRevised = false;
+ * reportLinesUnchanged = false; replaceOriginalLinefeedInChangesWithSpaces = false;
  *
  * For instantiating the DiffRowGenerator you should use the its builder. Like
- * in example  `
- * DiffRowGenerator generator = new DiffRowGenerator.Builder().showInlineDiffs(true).
- * ignoreWhiteSpaces(true).columnWidth(100).build();
-` *
+ * in example
+ * ```kotlin
+ * val generator = DiffRowGenerator.create().showInlineDiffs(true)
+ *     .ignoreWhiteSpaces(true).columnWidth(100).build()
+ * ```
  */
-class DiffRowGenerator private constructor(builder: Builder) {
+public class DiffRowGenerator private constructor(builder: Builder) {
     private val columnWidth: Int
-    private var equalizer: ((String, String) -> Boolean)? = null
-    private val ignoreWhiteSpaces: Boolean
-    private val inlineDiffSplitter: (String) -> List<String>
-    private val mergeOriginalRevised: Boolean
-    private val newTag: (DiffRow.Tag, Boolean) -> String
-    private val oldTag: (DiffRow.Tag, Boolean) -> String
-    private val reportLinesUnchanged: Boolean
-    private val lineNormalizer: (String) -> String
-    private val processDiffs: ((String) -> String)?
-    private val showInlineDiffs: Boolean
-    private val replaceOriginalLinefeedInChangesWithSpaces: Boolean
+    private var equalizer: ((String, String) -> Boolean)? = null  // nullable; if null, the default equalizer will be used
+    private val ignoreWhiteSpaces: Boolean// = true
+    private val inlineDiffSplitter: (String) -> List<String>  // non-nullable per original library
+    private val mergeOriginalRevised: Boolean// = false
+    private val newTag: (DiffRow.Tag, Boolean) -> String  // non-nullable, essential for algorithm
+    private val oldTag: (DiffRow.Tag, Boolean) -> String  // non-nullable, essential for algorithm
+    private val reportLinesUnchanged: Boolean// = false
+    private val lineNormalizer: (String) -> String  // non-nullable per original library
+    private val processDiffs: ((String) -> String)?  // nullable by design
+    private val showInlineDiffs: Boolean// = false
+    private val replaceOriginalLinefeedInChangesWithSpaces: Boolean// = false
 
     /**
      * Get the DiffRows describing the difference between original and revised
-     * texts using the given patch. Useful for displaying side-by-side diff.
+     * texts. Useful for displaying side-by-side diff.
      *
      * @param original the original text
      * @param revised the revised text
      * @return the DiffRows between original and revised texts
      */
-    fun generateDiffRows(original: List<String>, revised: List<String>): List<DiffRow> {
+    public fun generateDiffRows(original: List<String>, revised: List<String>): List<DiffRow> {
         return generateDiffRows(original, diff(original, revised, equalizer))
     }
 
@@ -79,11 +80,10 @@ class DiffRowGenerator private constructor(builder: Builder) {
      * @param patch the given patch
      * @return the DiffRows between original and revised texts
      */
-    fun generateDiffRows(original: List<String>, patch: Patch<String>): List<DiffRow> {
+    public fun generateDiffRows(original: List<String>, patch: Patch<String>): List<DiffRow> {
         val diffRows: MutableList<DiffRow> = ArrayList()
         var endPos = 0
-        val deltaList: List<Delta<String>> = patch.getDeltas()
-        for (originalDelta in deltaList) {
+        for (originalDelta in patch.deltas) {
             for (delta in decompressDeltas(originalDelta)) {
                 endPos = transformDeltaIntoDiffRow(original, endPos, diffRows, delta)
             }
@@ -98,11 +98,14 @@ class DiffRowGenerator private constructor(builder: Builder) {
 
     /**
      * Transforms one patch delta into a DiffRow object.
+     *
+     * @param endPos line number after previous delta end
      */
     private fun transformDeltaIntoDiffRow(original: List<String>, endPos: Int, diffRows: MutableList<DiffRow>, delta: Delta<String>): Int {
         val orig: Chunk<String> = delta.source
         val rev: Chunk<String> = delta.target
         for (line in original.subList(endPos, orig.position)) {
+            // all lines since previous delta until the start of the current delta
             diffRows.add(buildDiffRow(DiffRow.Tag.EQUAL, line, line))
         }
         when (delta.type) {
@@ -115,16 +118,14 @@ class DiffRowGenerator private constructor(builder: Builder) {
             else -> if (showInlineDiffs) {
                 diffRows.addAll(generateInlineDiffs(delta))
             } else {
-                var j = 0
-                while (j < max(orig.size(), rev.size())) {
+                for (j in 0 until max(orig.size(), rev.size())) {
                     diffRows.add(
                         buildDiffRow(
                             DiffRow.Tag.CHANGE,
-                            if (orig.lines.size > j) orig.lines[j] else "",
-                            if (rev.lines.size > j) rev.lines[j] else ""
+                            orig.lines.getOrElse(j) { "" },
+                            rev.lines.getOrElse(j) { "" }
                         )
                     )
-                    j++
                 }
             }
         }
@@ -135,13 +136,11 @@ class DiffRowGenerator private constructor(builder: Builder) {
      * Decompresses ChangeDeltas with different source and target size to a
      * ChangeDelta with same size and a following InsertDelta or DeleteDelta.
      * With this problems of building DiffRows getting smaller.
-     *
-     * @param deltaList
+     * If sizes are equal, returns a list with single element - [delta].
      */
     private fun decompressDeltas(delta: Delta<String>): List<Delta<String>> {
         if (delta.type == DeltaType.CHANGE && delta.source.size() != delta.target.size()) {
             val deltas: MutableList<Delta<String>> = ArrayList()
-            // println("decompress this " + delta);
             val minSize: Int = min(delta.source.size(), delta.target.size())
             val orig: Chunk<String> = delta.source
             val rev: Chunk<String> = delta.target
@@ -201,7 +200,7 @@ class DiffRowGenerator private constructor(builder: Builder) {
         )
     }
 
-    fun normalizeLines(list: List<String>): List<String> {
+    internal fun normalizeLines(list: List<String>): List<String> {
         return if (reportLinesUnchanged) list else list.map { lineNormalizer.invoke(it) }
     }
 
@@ -217,17 +216,15 @@ class DiffRowGenerator private constructor(builder: Builder) {
         val joinedRev: String = rev.joinToString("\n")
         val origList = inlineDiffSplitter.invoke(joinedOrig).toMutableList()
         val revList = inlineDiffSplitter.invoke(joinedRev).toMutableList()
-        // todo: `origList.toList` is needed because otherwise `wrapInTag` results in ConcurrentModificationException
-        val inlineDeltas: MutableList<Delta<String>> = diff(origList.toList(), revList, equalizer)
-            .getDeltas()
-            .reversed()
+        // todo: `origList.toList` and `revList.toList` are needed because otherwise `wrapInTag` results in ConcurrentModificationException
+        val inlineDeltas: MutableList<Delta<String>> = diff(origList.toList(), revList.toList(), equalizer)
+            .deltas
+            .asReversed()
             .toMutableList()
-        val inlineDeltasIterator = inlineDeltas.iterator()
-        while (inlineDeltasIterator.hasNext()) {
-            val inlineDelta = inlineDeltasIterator.next()
+        for (inlineDelta in inlineDeltas) {
             val inlineOrig: Chunk<String> = inlineDelta.source
             val inlineRev: Chunk<String> = inlineDelta.target
-            when(inlineDelta.type) {
+            when (inlineDelta.type) {
                  DeltaType.DELETE -> {
                     wrapInTag(
                         origList, inlineOrig.position, inlineOrig.position + inlineOrig.size(),
@@ -294,15 +291,16 @@ class DiffRowGenerator private constructor(builder: Builder) {
         for (character in revList) {
             revResult.append(character)
         }
-        val original: List<String> = origResult.toString().split("\n")
-        val revised: List<String> = revResult.toString().split("\n")
-        val diffRows: MutableList<DiffRow> = ArrayList<DiffRow>()
+        // note: dropLastWhile here arose from compatibility with Java: Java's `split` discard trailing empty string by default
+        val original: List<String> = origResult.toString().split("\n").dropLastWhile { it.isEmpty() }
+        val revised: List<String> = revResult.toString().split("\n").dropLastWhile { it.isEmpty() }
+        val diffRows: MutableList<DiffRow> = ArrayList()
         for (j in 0 until max(original.size, revised.size)) {
             diffRows.add(
                 buildDiffRowWithoutNormalizing(
                     DiffRow.Tag.CHANGE,
-                    if (original.size > j) original[j] else "",
-                    if (revised.size > j) revised[j] else ""
+                    original.getOrElse(j) { "" },
+                    revised.getOrElse(j) { "" }
                 )
             )
         }
@@ -320,7 +318,7 @@ class DiffRowGenerator private constructor(builder: Builder) {
     /**
      * This class used for building the DiffRowGenerator.
      */
-    class Builder internal constructor() {
+    public class Builder internal constructor() {
         internal var showInlineDiffs = false
         internal var ignoreWhiteSpaces = false
         internal var oldTag = { _: DiffRow.Tag, f: Boolean -> if (f) "<span class=\"editOldInline\">" else "</span>" }
@@ -340,7 +338,7 @@ class DiffRowGenerator private constructor(builder: Builder) {
          * @param val the value to set. Default: false.
          * @return builder with configured showInlineDiff parameter
          */
-        fun showInlineDiffs(`val`: Boolean): Builder {
+        public fun showInlineDiffs(`val`: Boolean): Builder {
             showInlineDiffs = `val`
             return this
         }
@@ -351,7 +349,7 @@ class DiffRowGenerator private constructor(builder: Builder) {
          * @param val the value to set. Default: true.
          * @return builder with configured ignoreWhiteSpaces parameter
          */
-        fun ignoreWhiteSpaces(`val`: Boolean): Builder {
+        public fun ignoreWhiteSpaces(`val`: Boolean): Builder {
             ignoreWhiteSpaces = `val`
             return this
         }
@@ -363,7 +361,7 @@ class DiffRowGenerator private constructor(builder: Builder) {
          * @param val the value to set. Default: false.
          * @return builder with configured reportLinesUnWrapped parameter
          */
-        fun reportLinesUnchanged(`val`: Boolean): Builder {
+        public fun reportLinesUnchanged(`val`: Boolean): Builder {
             reportLinesUnchanged = `val`
             return this
         }
@@ -374,7 +372,7 @@ class DiffRowGenerator private constructor(builder: Builder) {
          * @param generator the tag generator
          * @return builder with configured ignoreBlankLines parameter
          */
-        fun oldTag(generator: (DiffRow.Tag, Boolean) -> String): Builder {
+        public fun oldTag(generator: (DiffRow.Tag, Boolean) -> String): Builder {
             oldTag = generator
             return this
         }
@@ -385,7 +383,7 @@ class DiffRowGenerator private constructor(builder: Builder) {
          * @param generator the tag generator
          * @return builder with configured ignoreBlankLines parameter
          */
-        fun oldTag(generator: (Boolean) -> String): Builder {
+        public fun oldTag(generator: (Boolean) -> String): Builder {
             oldTag = { _: DiffRow.Tag, f: Boolean -> generator.invoke(f) }
             return this
         }
@@ -396,7 +394,7 @@ class DiffRowGenerator private constructor(builder: Builder) {
          * @param generator
          * @return
          */
-        fun newTag(generator: (DiffRow.Tag, Boolean) -> String): Builder {
+        public fun newTag(generator: (DiffRow.Tag, Boolean) -> String): Builder {
             newTag = generator
             return this
         }
@@ -407,7 +405,7 @@ class DiffRowGenerator private constructor(builder: Builder) {
          * @param generator
          * @return
          */
-        fun newTag(generator: (Boolean) -> String): Builder {
+        public fun newTag(generator: (Boolean) -> String): Builder {
             newTag = { _: DiffRow.Tag, f: Boolean -> generator.invoke(f) }
             return this
         }
@@ -419,7 +417,7 @@ class DiffRowGenerator private constructor(builder: Builder) {
          * @param processDiffs
          * @return
          */
-        fun processDiffs(processDiffs: (String) -> String): Builder {
+        public fun processDiffs(processDiffs: (String) -> String): Builder {
             this.processDiffs = processDiffs
             return this
         }
@@ -431,7 +429,7 @@ class DiffRowGenerator private constructor(builder: Builder) {
          * @param width the width to set. Making it < 0 doesn't make any sense.
          * Default 80. @return builder with config of column width
          */
-        fun columnWidth(width: Int): Builder {
+        public fun columnWidth(width: Int): Builder {
             if (width >= 0) {
                 columnWidth = width
             }
@@ -444,7 +442,7 @@ class DiffRowGenerator private constructor(builder: Builder) {
          *
          * @return the customized DiffRowGenerator
          */
-        fun build(): DiffRowGenerator {
+        public fun build(): DiffRowGenerator {
             return DiffRowGenerator(this)
         }
 
@@ -455,7 +453,7 @@ class DiffRowGenerator private constructor(builder: Builder) {
          * @param mergeOriginalRevised
          * @return
          */
-        fun mergeOriginalRevised(mergeOriginalRevised: Boolean): Builder {
+        public fun mergeOriginalRevised(mergeOriginalRevised: Boolean): Builder {
             this.mergeOriginalRevised = mergeOriginalRevised
             return this
         }
@@ -470,7 +468,7 @@ class DiffRowGenerator private constructor(builder: Builder) {
          * true:     (aBa : aba) --  changed: (aBa) : (aba)
         </pre> *
          */
-        fun inlineDiffByWord(inlineDiffByWord: Boolean): Builder {
+        public fun inlineDiffByWord(inlineDiffByWord: Boolean): Builder {
             inlineDiffSplitter = if (inlineDiffByWord) SPLITTER_BY_WORD else SPLITTER_BY_CHARACTER
             return this
         }
@@ -483,7 +481,7 @@ class DiffRowGenerator private constructor(builder: Builder) {
          * @param inlineDiffSplitter
          * @return
          */
-        fun inlineDiffBySplitter(inlineDiffSplitter: (String) -> List<String>): Builder {
+        public fun inlineDiffBySplitter(inlineDiffSplitter: (String) -> List<String>): Builder {
             this.inlineDiffSplitter = inlineDiffSplitter
             return this
         }
@@ -497,7 +495,7 @@ class DiffRowGenerator private constructor(builder: Builder) {
          * @param lineNormalizer
          * @return
          */
-        fun lineNormalizer(lineNormalizer: (String) -> String): Builder {
+        public fun lineNormalizer(lineNormalizer: (String) -> String): Builder {
             this.lineNormalizer = lineNormalizer
             return this
         }
@@ -508,7 +506,7 @@ class DiffRowGenerator private constructor(builder: Builder) {
          * @param equalizer equalizer for diff processing.
          * @return builder with configured equalizer parameter
          */
-        fun equalizer(equalizer: (String, String) -> Boolean): Builder {
+        public fun equalizer(equalizer: (String, String) -> Boolean): Builder {
             this.equalizer = equalizer
             return this
         }
@@ -521,63 +519,63 @@ class DiffRowGenerator private constructor(builder: Builder) {
          * @param replace
          * @return
          */
-        fun replaceOriginalLinefeedInChangesWithSpaces(replace: Boolean): Builder {
+        public fun replaceOriginalLinefeedInChangesWithSpaces(replace: Boolean): Builder {
             replaceOriginalLinefeedInChangesWithSpaces = replace
             return this
         }
     }
 
-    companion object {
-        val DEFAULT_EQUALIZER = { o1: Any?, o2: Any? -> o1 == o2 }
-        val IGNORE_WHITESPACE_EQUALIZER = { original: String, revised: String ->
+    public companion object {
+        internal val DEFAULT_EQUALIZER: (Any?, Any?) -> Boolean = { o1: Any?, o2: Any? -> o1 == o2 }
+        internal val IGNORE_WHITESPACE_EQUALIZER: (String, String) -> Boolean = { original: String, revised: String ->
                 adjustWhitespace(
                     original
                 ) == adjustWhitespace(revised)
             }
-        val LINE_NORMALIZER_FOR_HTML: (String) -> String = { normalize(it) }
+        internal val LINE_NORMALIZER_FOR_HTML: (String) -> String = { normalize(it) }
 
         /**
          * Splitting lines by character to achieve char by char diff checking.
          */
-        val SPLITTER_BY_CHARACTER = { line: String ->
+        internal val SPLITTER_BY_CHARACTER = { line: String ->
                 val list: MutableList<String> = ArrayList(line.length)
                 for (character in line.toCharArray()) {
                     list.add(character.toString())
                 }
                 list.toList()
             }
-        val SPLIT_BY_WORD_PATTERN = Regex("\\s+|[,.\\[\\](){}/\\\\*+\\-#]")
+        internal val SPLIT_BY_WORD_PATTERN = Regex("\\s+|[,.\\[\\](){}/\\\\*+\\-#]")
 
         /**
          * Splitting lines by word to achieve word by word diff checking.
          */
-        val SPLITTER_BY_WORD = { line: String ->
+        internal val SPLITTER_BY_WORD = { line: String ->
                 splitStringPreserveDelimiter(
                     line,
                     SPLIT_BY_WORD_PATTERN
                 )
             }
-        val WHITESPACE_PATTERN = Regex("\\s+")
-        fun create(): Builder {
+        internal val WHITESPACE_PATTERN = Regex("\\s+")
+
+        public fun create(): Builder {
             return Builder()
         }
 
         private fun adjustWhitespace(raw: String): String {
-            return WHITESPACE_PATTERN.replace(raw.trim { it <= ' ' }, " ")
+            return WHITESPACE_PATTERN.replace(raw.trim(), " ")
         }
 
-        protected fun splitStringPreserveDelimiter(str: String?, SPLIT_PATTERN: Regex): List<String> {
+        internal fun splitStringPreserveDelimiter(str: String?, SPLIT_PATTERN: Regex): List<String> {
             val list: MutableList<String> = mutableListOf()
             if (str != null) {
-                var matchResult = SPLIT_PATTERN.matchEntire(str)
+                val matchResults = SPLIT_PATTERN.findAll(str)
                 var pos = 0
-                while (matchResult != null) {
+                for (matchResult in matchResults) {
                     if (pos < matchResult.range.first) {
                         list.add(str.substring(pos, matchResult.range.first))
                     }
                     list.add(matchResult.value)
-                    pos = matchResult.range.last
-                    matchResult = matchResult.next()
+                    pos = matchResult.range.last + 1
                 }
                 if (pos < str.length) {
                     list.add(str.substring(pos))
@@ -594,11 +592,11 @@ class DiffRowGenerator private constructor(builder: Builder) {
          * @param endPosition the position before which tag should should be closed.
          * @param tagGenerator the tag generator
          */
-        fun wrapInTag(
+        internal fun wrapInTag(
             sequence: MutableList<String>, startPosition: Int,
             endPosition: Int, tag: DiffRow.Tag, tagGenerator: (DiffRow.Tag, Boolean) -> String,
             processDiffs: ((String) -> String)?, replaceLinefeedWithSpace: Boolean
-        ) {
+        ): MutableList<String> {
             var endPos = endPosition
             while (endPos >= startPosition) {
                 // search position for end tag
@@ -637,6 +635,7 @@ class DiffRowGenerator private constructor(builder: Builder) {
                 sequence.add(endPos, tagGenerator.invoke(tag, true))
                 endPos--
             }
+            return sequence
         }
 
 
@@ -659,7 +658,5 @@ class DiffRowGenerator private constructor(builder: Builder) {
         lineNormalizer = builder.lineNormalizer
         processDiffs = builder.processDiffs
         replaceOriginalLinefeedInChangesWithSpaces = builder.replaceOriginalLinefeedInChangesWithSpaces
-        requireNotNull(inlineDiffSplitter)
-        requireNotNull(lineNormalizer)
     }
 }
