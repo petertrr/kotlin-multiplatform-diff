@@ -1,4 +1,8 @@
 # kotlin-diff-utils
+![Build and test](https://github.com/petertrr/kotlin-diff-utils/workflows/Build%20and%20test/badge.svg)
+[![License](https://img.shields.io/github/license/petertrr/kotlin-diff-utils)](https://github.com/petertrr/kotlin-diff-utils/blob/main/LICENSE)
+[![codecov](https://codecov.io/gh/petertrr/kotlin-diff-utils/branch/main/graph/badge.svg)](https://codecov.io/gh/petertrr/kotlin-diff-utils)
+
 This is a port of [java-diff-utils](https://github.com/java-diff-utils/java-diff-utils) to kotlin
 with multiplatform support. All credit for the implementation goes to original authors.
 
