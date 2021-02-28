@@ -1,14 +1,16 @@
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.getCurrentOperatingSystem
+import io.github.petertrr.configurePublishing
+import io.github.petertrr.configureVersioning
 import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
 
 plugins {
-    kotlin("multiplatform") version "1.4.30"
+    kotlin("multiplatform") version "1.4.31"
     jacoco
-    id("maven-publish")
+    id("com.github.ben-manes.versions") version "0.38.0"
 }
 
+configureVersioning()
 group = "io.github.petertrr"
-version = "0.1.0-SNAPSHOT"
+description = "A multiplatform Kotlin library for calculating text differences"
 
 repositories {
     mavenCentral()
@@ -18,17 +20,14 @@ kotlin {
     explicitApi()
 
     jvm()
-    js(IR) {
+    js(BOTH) {
         browser()
         nodejs()
     }
     // setup native compilation
-    val os = getCurrentOperatingSystem()
-    val hostTarget = when {
-        os.isLinux -> linuxX64()
-        os.isWindows -> mingwX64()
-        else -> throw GradleException("Host OS '${os.name}' is not supported in Kotlin/Native $project.")
-    }
+    linuxX64()
+    mingwX64()
+    macosX64()
 
     sourceSets {
         val commonTest by getting {
@@ -41,7 +40,7 @@ kotlin {
         val jvmTest by getting {
             dependencies {
                 implementation(kotlin("test-junit5"))
-                implementation("org.junit.jupiter:junit-jupiter-engine:5.0.0")
+                implementation("org.junit.jupiter:junit-jupiter-engine:5.7.1")
             }
         }
         val jsTest by getting {
@@ -52,11 +51,7 @@ kotlin {
     }
 }
 
-publishing {
-    repositories {
-        mavenLocal()
-    }
-}
+configurePublishing()
 
 tasks.withType<KotlinJvmTest> {
     useJUnitPlatform()

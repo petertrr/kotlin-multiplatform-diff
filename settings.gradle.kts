@@ -1,1 +1,1 @@
-rootProject.name = "kotlin-diff-utils"
+rootProject.name = "kotlin-multiplatform-diff"
