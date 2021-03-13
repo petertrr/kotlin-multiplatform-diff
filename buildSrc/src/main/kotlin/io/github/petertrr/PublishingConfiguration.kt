@@ -34,7 +34,9 @@ fun Project.configurePublishing() {
 
     configurePublications()
     // https://kotlinlang.org/docs/mpp-publish-lib.html#avoid-duplicate-publications
-    val publicationsFromMainHost = listOf("jvm", "js", "kotlinMultiplatform")
+    // publication with name `kotlinMultiplatform` is for the default artifact
+    // fixme: doesn't work as expected
+    val publicationsFromMainHost = listOf("jvm", "js", "linuxX64", "kotlinMultiplatform", "metadata")
     configure<PublishingExtension> {
         publications {
             matching { it.name in publicationsFromMainHost }.all {
