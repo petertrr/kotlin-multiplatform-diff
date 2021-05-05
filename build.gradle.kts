@@ -3,7 +3,7 @@ import io.github.petertrr.configureVersioning
 import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
 
 plugins {
-    kotlin("multiplatform") version "1.4.31"
+    kotlin("multiplatform") version "1.5.0"
     jacoco
     id("com.github.ben-manes.versions") version "0.38.0"
 }
