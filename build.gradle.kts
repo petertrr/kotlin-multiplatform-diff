@@ -59,7 +59,7 @@ tasks.withType<KotlinJvmTest> {
 
 // configure Jacoco-based code coverage reports for JVM tests executions
 jacoco {
-    toolVersion = "0.8.6"
+    toolVersion = "0.8.7"
 }
 val jvmTestTask by tasks.named<KotlinJvmTest>("jvmTest") {
     configure<JacocoTaskExtension> {
