@@ -3,9 +3,9 @@ import io.github.petertrr.configureVersioning
 import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
 
 plugins {
-    kotlin("multiplatform") version "1.5.0"
+    alias(libs.plugins.kotlin.multiplatform)
     jacoco
-    id("com.github.ben-manes.versions") version "0.38.0"
+    id("com.github.ben-manes.versions") version "0.39.0"
 }
 
 configureVersioning()
@@ -40,7 +40,7 @@ kotlin {
         val jvmTest by getting {
             dependencies {
                 implementation(kotlin("test-junit5"))
-                implementation("org.junit.jupiter:junit-jupiter-engine:5.7.1")
+                implementation(libs.junit.jupiter.engine)
             }
         }
         val jsTest by getting {
@@ -72,8 +72,8 @@ val jacocoTestReportTask by tasks.register<JacocoReport>("jacocoTestReport") {
     additionalSourceDirs(kotlin.sourceSets["commonMain"].kotlin.sourceDirectories)
     classDirectories.setFrom(file("$buildDir/classes/kotlin/jvm"))
     reports {
-        xml.isEnabled = true
-        html.isEnabled = true
+        xml.required.set(true)
+        html.required.set(true)
     }
 }
 jvmTestTask.finalizedBy(jacocoTestReportTask)
