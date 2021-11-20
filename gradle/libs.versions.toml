@@ -1,5 +1,5 @@
 [versions]
-kotlin = "1.5.31"
+kotlin = "1.6.0"
 junit = "5.8.1"
 
 [plugins]
