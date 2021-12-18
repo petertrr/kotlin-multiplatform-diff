@@ -4,6 +4,7 @@ junit = "5.8.1"
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+spotless = { id = "com.diffplug.spotless", version = "6.0.5" }
 
 [libraries]
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }

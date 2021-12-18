@@ -1,6 +1,6 @@
 /*
- * Copyright 2021 Peter Trifanov.
- * Copyright 2009-2017 java-diff-utils.
+ * Copyright 2021-2021 Peter Trifanov.
+ * Copyright 2009-2020 java-diff-utils.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

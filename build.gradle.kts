@@ -5,6 +5,7 @@ import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     jacoco
+    alias(libs.plugins.spotless)
 }
 
 configureVersioning()
@@ -73,3 +74,10 @@ val jacocoTestReportTask by tasks.register<JacocoReport>("jacocoTestReport") {
 }
 jvmTestTask.finalizedBy(jacocoTestReportTask)
 jacocoTestReportTask.dependsOn(jvmTestTask)
+
+spotless {
+    kotlin {
+        target(fileTree("src").apply { include("**/*.kt") })
+        licenseHeaderFile("${rootProject.projectDir}/buildSrc/src/main/resources/license-header.txt")
+    }
+}
