@@ -65,7 +65,7 @@ val jvmTestTask by tasks.named<KotlinJvmTest>("jvmTest") {
 val jacocoTestReportTask by tasks.register<JacocoReport>("jacocoTestReport") {
     executionData(jvmTestTask.extensions.getByType(JacocoTaskExtension::class.java).destinationFile)
     additionalSourceDirs(kotlin.sourceSets["commonMain"].kotlin.sourceDirectories)
-    classDirectories.setFrom(file("$buildDir/classes/kotlin/jvm"))
+    classDirectories.setFrom(file("$buildDir/classes/kotlin/jvm/main"))
     reports {
         xml.required.set(true)
         html.required.set(true)
