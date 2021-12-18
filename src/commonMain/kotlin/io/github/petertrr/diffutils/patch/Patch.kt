@@ -115,7 +115,7 @@ public class Patch<T>(estimatedPatchSize: Int = 10) {
             }
             if (includeEquals && startOriginal < original.size) {
                 patch.addDelta(
-                    EqualDelta<T>(
+                    EqualDelta(
                         buildChunk(startOriginal, original.size, original),
                         buildChunk(startRevised, revised.size, revised)
                     )

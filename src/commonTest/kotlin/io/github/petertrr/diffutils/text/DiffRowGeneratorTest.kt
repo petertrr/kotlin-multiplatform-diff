@@ -27,9 +27,9 @@ class DiffRowGeneratorTest {
     fun testGenerator_Default() {
         val first = "anything \n \nother"
         val second = "anything\n\nother"
-        val generator = DiffRowGenerator.create()
-            .columnWidth(Int.MAX_VALUE) // do not wrap
-            .build()
+        val generator = DiffRowGenerator(
+            columnWidth = Int.MAX_VALUE // do not wrap
+        )
         val rows: List<DiffRow> = generator.generateDiffRows(first.lines(), second.lines())
         print(rows)
         assertEquals(3, rows.size)
@@ -40,8 +40,7 @@ class DiffRowGeneratorTest {
      */
     @Test
     fun testNormalize_List() {
-        val generator: DiffRowGenerator = DiffRowGenerator.create()
-            .build()
+        val generator = DiffRowGenerator()
         assertEquals(listOf("    test"), generator.normalizeLines(listOf("\ttest")))
     }
 
@@ -49,9 +48,9 @@ class DiffRowGeneratorTest {
     fun testGenerator_Default2() {
         val first = "anything \n \nother"
         val second = "anything\n\nother"
-        val generator: DiffRowGenerator = DiffRowGenerator.create()
-            .columnWidth(0) // do not wrap
-            .build()
+        val generator = DiffRowGenerator(
+            columnWidth = 0 // do not wrap
+        )
         val rows: List<DiffRow> = generator.generateDiffRows(first.lines(), second.lines())
         print(rows)
         assertEquals(3, rows.size)
@@ -61,10 +60,10 @@ class DiffRowGeneratorTest {
     fun testGenerator_InlineDiff() {
         val first = "anything \n \nother"
         val second = "anything\n\nother"
-        val generator: DiffRowGenerator = DiffRowGenerator.create()
-            .showInlineDiffs(true)
-            .columnWidth(Int.MAX_VALUE) // do not wrap
-            .build()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            columnWidth = Int.MAX_VALUE // do not wrap
+        )
         val rows: List<DiffRow> = generator.generateDiffRows(first.lines(), second.lines())
         print(rows)
         assertEquals(3, rows.size)
@@ -75,10 +74,10 @@ class DiffRowGeneratorTest {
     fun testGenerator_IgnoreWhitespaces() {
         val first = "anything \n \nother\nmore lines"
         val second = "anything\n\nother\nsome more lines"
-        val generator: DiffRowGenerator = DiffRowGenerator.create()
-            .ignoreWhiteSpaces(true)
-            .columnWidth(Int.MAX_VALUE) // do not wrap
-            .build()
+        val generator = DiffRowGenerator(
+            ignoreWhiteSpaces = true,
+            columnWidth = Int.MAX_VALUE // do not wrap
+        )
         val rows: List<DiffRow> = generator.generateDiffRows(first.lines(), second.lines())
         print(rows)
         assertEquals(4, rows.size)
@@ -92,9 +91,9 @@ class DiffRowGeneratorTest {
     fun testGeneratorWithWordWrap() {
         val first = "anything \n \nother"
         val second = "anything\n\nother"
-        val generator = DiffRowGenerator.create()
-            .columnWidth(5)
-            .build()
+        val generator = DiffRowGenerator(
+            columnWidth = 5
+        )
         val rows: List<DiffRow> = generator.generateDiffRows(first.lines(), second.lines())
         print(rows)
         assertEquals(3, rows.size)
@@ -107,10 +106,10 @@ class DiffRowGeneratorTest {
     fun testGeneratorWithMerge() {
         val first = "anything \n \nother"
         val second = "anything\n\nother"
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(true)
-            .mergeOriginalRevised(true)
-            .build()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            mergeOriginalRevised = true,
+        )
         val rows: List<DiffRow> = generator.generateDiffRows(first.lines(), second.lines())
         print(rows)
         assertEquals(3, rows.size)
@@ -121,10 +120,10 @@ class DiffRowGeneratorTest {
 
     @Test
     fun testGeneratorWithMerge2() {
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(true)
-            .mergeOriginalRevised(true)
-            .build()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            mergeOriginalRevised = true,
+        )
         val rows: List<DiffRow> = generator.generateDiffRows(listOf("Test"), listOf("ester"))
         print(rows)
         assertEquals(1, rows.size)
@@ -135,10 +134,10 @@ class DiffRowGeneratorTest {
     fun testGeneratorWithMerge3() {
         val first = "test\nanything \n \nother"
         val second = "anything\n\nother\ntest\ntest2"
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(true)
-            .mergeOriginalRevised(true)
-            .build()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            mergeOriginalRevised = true,
+        )
         val rows = generator.generateDiffRows(first.lines(), second.lines())
         println(rows)
         assertEquals(6, rows.size)
@@ -152,11 +151,11 @@ class DiffRowGeneratorTest {
 
     @Test
     fun testGeneratorWithMergeByWord4() {
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(true)
-            .mergeOriginalRevised(true)
-            .inlineDiffByWord(true)
-            .build()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            mergeOriginalRevised = true,
+            inlineDiffByWord = true,
+        )
         val rows: List<DiffRow> = generator.generateDiffRows(listOf("Test"), listOf("ester"))
         print(rows)
         assertEquals(1, rows.size)
@@ -165,12 +164,12 @@ class DiffRowGeneratorTest {
 
     @Test
     fun testGeneratorWithMergeByWord5() {
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(true)
-            .mergeOriginalRevised(true)
-            .inlineDiffByWord(true)
-            .columnWidth(80)
-            .build()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            mergeOriginalRevised = true,
+            inlineDiffByWord = true,
+            columnWidth = 80
+        )
         val rows: List<DiffRow> = generator.generateDiffRows(listOf("Test feature"), listOf("ester feature best"))
         print(rows)
         assertEquals(1, rows.size)
@@ -205,13 +204,13 @@ class DiffRowGeneratorTest {
 
     @Test
     fun testGeneratorExample1() {
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(true)
-            .mergeOriginalRevised(true)
-            .inlineDiffByWord(true)
-            .oldTag { _ -> "~" }
-            .newTag { _ -> "**" }
-            .build()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            mergeOriginalRevised = true,
+            inlineDiffByWord = true,
+            oldTag = { _, _ -> "~" },
+            newTag = { _, _ -> "**" },
+        )
         val rows: List<DiffRow> = generator.generateDiffRows(
             listOf("This is a test senctence."),
             listOf("This is a test for diffutils.")
@@ -223,12 +222,12 @@ class DiffRowGeneratorTest {
 
     @Test
     fun testGeneratorExample2() {
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(true)
-            .inlineDiffByWord(true)
-            .oldTag { _ -> "~" }
-            .newTag { _ -> "**" }
-            .build()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            inlineDiffByWord = true,
+            oldTag = { _, _ -> "~" },
+            newTag = { _, _ -> "**" },
+        )
         val rows: List<DiffRow> = generator.generateDiffRows(
             listOf("This is a test senctence.", "This is the second line.", "And here is the finish."),
             listOf("This is a test for diffutils.", "This is the second line.")
@@ -247,10 +246,10 @@ class DiffRowGeneratorTest {
     fun testGeneratorUnchanged() {
         val first = "anything \n \nother"
         val second = "anything\n\nother"
-        val generator = DiffRowGenerator.create()
-            .columnWidth(5)
-            .reportLinesUnchanged(true)
-            .build()
+        val generator = DiffRowGenerator(
+            columnWidth = 5,
+            reportLinesUnchanged = true,
+        )
         val rows: List<DiffRow> = generator.generateDiffRows(first.lines(), second.lines())
         print(rows)
         assertEquals(3, rows.size)
@@ -261,13 +260,13 @@ class DiffRowGeneratorTest {
 
     @Test
     fun testGeneratorIssue14() {
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(true)
-            .mergeOriginalRevised(true)
-            .inlineDiffBySplitter { line -> DiffRowGenerator.splitStringPreserveDelimiter(line, Regex(",")) }
-            .oldTag { _ -> "~" }
-            .newTag { _ -> "**" }
-            .build()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            mergeOriginalRevised = true,
+            inlineDiffSplitter = { line -> DiffRowGenerator.splitStringPreserveDelimiter(line, Regex(",")) },
+            oldTag = { _, _ -> "~" },
+            newTag = { _, _ -> "**" },
+        )
         val rows: List<DiffRow> = generator.generateDiffRows(
             listOf("J. G. Feldstein, Chair"),
             listOf("T. P. Pastor, Chair")
@@ -279,13 +278,13 @@ class DiffRowGeneratorTest {
 
     @Test
     fun testGeneratorIssue15() {
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(true) //show the ~ ~ and ** ** symbols on each difference
-            .inlineDiffByWord(true) //show the ~ ~ and ** ** around each different word instead of each letter
-            //.reportLinesUnchanged(true) //experiment
-            .oldTag { _ -> "~" }
-            .newTag { _ -> "**" }
-            .build()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true, //show the ~ ~ and ** ** symbols on each difference
+            inlineDiffByWord = true, //show the ~ ~ and ** ** around each different word instead of each letter
+            //reportLinesUnchanged = true) //experiment
+            oldTag = { _, _ -> "~" },
+            newTag = { _, _ -> "**" },
+        )
         val listOne: List<String> = """
             TABLE_NAME, COLUMN_NAME, DATA_TYPE, DATA_LENGTH, DATA_PRECISION, NULLABLE,
             ACTIONS_C17005, ID, NUMBER, 22, 19, N,
@@ -321,12 +320,12 @@ class DiffRowGeneratorTest {
 
     @Test
     fun testGeneratorIssue22() {
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(true)
-            .inlineDiffByWord(true)
-            .oldTag { _ -> "~" }
-            .newTag { _ -> "**" }
-            .build()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            inlineDiffByWord = true,
+            oldTag = { _, _ -> "~" },
+            newTag = { _, _ -> "**" },
+        )
         val aa = "This is a test senctence."
         val bb = "This is a test for diffutils.\nThis is the second line."
         val rows: List<DiffRow> = generator.generateDiffRows(
@@ -349,12 +348,12 @@ class DiffRowGeneratorTest {
 
     @Test
     fun testGeneratorIssue22_2() {
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(true)
-            .inlineDiffByWord(true)
-            .oldTag { _ -> "~" }
-            .newTag { _ -> "**" }
-            .build()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            inlineDiffByWord = true,
+            oldTag = { _, _ -> "~" },
+            newTag = { _, _ -> "**" },
+        )
         val aa = "This is a test for diffutils.\nThis is the second line."
         val bb = "This is a test senctence."
         val rows: List<DiffRow> = generator.generateDiffRows(
@@ -372,12 +371,12 @@ class DiffRowGeneratorTest {
 
     @Test
     fun testGeneratorIssue22_3() {
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(true)
-            .inlineDiffByWord(true)
-            .oldTag { _ -> "~" }
-            .newTag { _ -> "**" }
-            .build()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            inlineDiffByWord = true,
+            oldTag = { _, _ -> "~" },
+            newTag = { _, _ -> "**" },
+        )
         val aa = "This is a test senctence."
         val bb = "This is a test for diffutils.\nThis is the second line.\nAnd one more."
         val rows: List<DiffRow> = generator.generateDiffRows(
@@ -396,17 +395,17 @@ class DiffRowGeneratorTest {
 
     @Test
     fun testGeneratorIssue41DefaultNormalizer() {
-        val generator = DiffRowGenerator.create()
-            .build()
+        val generator = DiffRowGenerator(
+        )
         val rows: List<DiffRow> = generator.generateDiffRows(listOf("<"), listOf("<"))
         assertEquals(DiffRow(DiffRow.Tag.EQUAL, "&lt;", "&lt;"), rows.single())
     }
 
     @Test
     fun testGeneratorIssue41UserNormalizer() {
-        val generator = DiffRowGenerator.create()
-            .lineNormalizer { str -> str.replace("\t", "    ") }
-            .build()
+        val generator = DiffRowGenerator(
+            lineNormalizer = { str -> str.replace("\t", "    ") }
+        )
         var rows: List<DiffRow?> = generator.generateDiffRows(listOf("<"), listOf("<"))
         assertEquals(DiffRow(DiffRow.Tag.EQUAL, "<", "<"), rows.single())
         rows = generator.generateDiffRows(listOf("\t<"), listOf("<"))
@@ -415,26 +414,26 @@ class DiffRowGeneratorTest {
 
     @Test
     fun testGenerationIssue44reportLinesUnchangedProblem() {
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(true)
-            .reportLinesUnchanged(true)
-            .oldTag { _ -> "~~" }
-            .newTag { _ -> "**" }
-            .build()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            reportLinesUnchanged = true,
+            oldTag = { _, _ -> "~~" },
+            newTag = { _, _ -> "**" },
+        )
         val rows: List<DiffRow> = generator.generateDiffRows(listOf("<dt>To do</dt>"), listOf("<dt>Done</dt>"))
         assertEquals(DiffRow(DiffRow.Tag.CHANGE, "<dt>~~T~~o~~ do~~</dt>", "<dt>**D**o**ne**</dt>"), rows.single())
     }
 
     @Test
     fun testIgnoreWhitespaceIssue66() {
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(true)
-            .inlineDiffByWord(true)
-            .ignoreWhiteSpaces(true)
-            .mergeOriginalRevised(true)
-            .oldTag { _ -> "~" } //introduce markdown style for strikethrough
-            .newTag { _ -> "**" } //introduce markdown style for bold
-            .build()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            inlineDiffByWord = true,
+            ignoreWhiteSpaces = true,
+            mergeOriginalRevised = true,
+            oldTag = { _, _ -> "~" }, //introduce markdown style for strikethrough,
+            newTag = { _, _ -> "**" } //introduce markdown style for bold,
+        )
 
         //compute the differences for two test texts.
         //CHECKSTYLE:OFF
@@ -448,14 +447,14 @@ class DiffRowGeneratorTest {
 
     @Test
     fun testIgnoreWhitespaceIssue66_2() {
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(true)
-            .inlineDiffByWord(true)
-            .ignoreWhiteSpaces(true)
-            .mergeOriginalRevised(true)
-            .oldTag { _ -> "~" } //introduce markdown style for strikethrough
-            .newTag { _ -> "**" } //introduce markdown style for bold
-            .build()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            inlineDiffByWord = true,
+            ignoreWhiteSpaces = true,
+            mergeOriginalRevised = true,
+            oldTag = { _, _ -> "~" }, //introduce markdown style for strikethrough,
+            newTag = { _, _ -> "**" } //introduce markdown style for bold,
+        )
 
         //compute the differences for two test texts.
         val rows: List<DiffRow> = generator.generateDiffRows(
@@ -467,14 +466,14 @@ class DiffRowGeneratorTest {
 
     @Test
     fun testIgnoreWhitespaceIssue64() {
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(true)
-            .inlineDiffByWord(true)
-            .ignoreWhiteSpaces(true)
-            .mergeOriginalRevised(true)
-            .oldTag { _ -> "~" } //introduce markdown style for strikethrough
-            .newTag { _ -> "**" } //introduce markdown style for bold
-            .build()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            inlineDiffByWord = true,
+            ignoreWhiteSpaces = true,
+            mergeOriginalRevised = true,
+            oldTag = { _, _ -> "~" }, //introduce markdown style for strikethrough,
+            newTag = { _, _ -> "**" } //introduce markdown style for bold,
+        )
 
         //compute the differences for two test texts.
         val rows: List<DiffRow> = generator.generateDiffRows(
@@ -496,14 +495,14 @@ class DiffRowGeneratorTest {
 
     @Test
     fun testReplaceDiffsIssue63() {
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(true)
-            .inlineDiffByWord(true)
-            .mergeOriginalRevised(true)
-            .oldTag { _ -> "~" } //introduce markdown style for strikethrough
-            .newTag { _ -> "**" } //introduce markdown style for bold
-            .processDiffs { str -> str.replace(" ", "/") }
-            .build()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            inlineDiffByWord = true,
+            mergeOriginalRevised = true,
+            oldTag = { _, _ -> "~" }, //introduce markdown style for strikethrough,
+            newTag = { _, _ -> "**" }, //introduce markdown style for bold,
+            processDiffs = { str -> str.replace(" ", "/") },
+        )
 
         //compute the differences for two test texts.
         val rows: List<DiffRow> = generator.generateDiffRows(
@@ -515,15 +514,15 @@ class DiffRowGeneratorTest {
 
     @Test
     fun testProblemTooManyDiffRowsIssue65() {
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(true)
-            .reportLinesUnchanged(true)
-            .oldTag { _ -> "~" }
-            .newTag { _ -> "**" }
-            .mergeOriginalRevised(true)
-            .inlineDiffByWord(false)
-            .replaceOriginalLinefeedInChangesWithSpaces(true)
-            .build()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            reportLinesUnchanged = true,
+            oldTag = { _, _ -> "~" },
+            newTag = { _, _ -> "**" },
+            mergeOriginalRevised = true,
+            inlineDiffByWord = false,
+            replaceOriginalLinefeedInChangesWithSpaces = true
+        )
         val diffRows: List<DiffRow> = generator.generateDiffRows(
             listOf("Ich möchte nicht mit einem Bot sprechen.", "Ich soll das schon wieder wiederholen?"),
             listOf("Ich möchte nicht mehr mit dir sprechen. Leite mich weiter.", "Kannst du mich zum Kundendienst weiterleiten?")
@@ -534,14 +533,14 @@ class DiffRowGeneratorTest {
 
     @Test
     fun testProblemTooManyDiffRowsIssue65_NoMerge() {
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(true)
-            .reportLinesUnchanged(true)
-            .oldTag { _ -> "~" }
-            .newTag { _ -> "**" }
-            .mergeOriginalRevised(false)
-            .inlineDiffByWord(false)
-            .build()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            reportLinesUnchanged = true,
+            oldTag = { _, _ -> "~" },
+            newTag = { _, _ -> "**" },
+            mergeOriginalRevised = false,
+            inlineDiffByWord = false,
+        )
         val diffRows: List<DiffRow> = generator.generateDiffRows(
             listOf("Ich möchte nicht mit einem Bot sprechen.", "Ich soll das schon wieder wiederholen?"),
             listOf("Ich möchte nicht mehr mit dir sprechen. Leite mich weiter.", "Kannst du mich zum Kundendienst weiterleiten?")
@@ -552,14 +551,14 @@ class DiffRowGeneratorTest {
 
     @Test
     fun testProblemTooManyDiffRowsIssue65_DiffByWord() {
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(true)
-            .reportLinesUnchanged(true)
-            .oldTag { _ -> "~" }
-            .newTag { _ -> "**" }
-            .mergeOriginalRevised(true)
-            .inlineDiffByWord(true)
-            .build()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            reportLinesUnchanged = true,
+            oldTag = { _, _ -> "~" },
+            newTag = { _, _ -> "**" },
+            mergeOriginalRevised = true,
+            inlineDiffByWord = true,
+        )
         val diffRows: List<DiffRow> = generator.generateDiffRows(
             listOf("Ich möchte nicht mit einem Bot sprechen.", "Ich soll das schon wieder wiederholen?"),
             listOf("Ich möchte nicht mehr mit dir sprechen. Leite mich weiter.", "Kannst du mich zum Kundendienst weiterleiten?")
@@ -570,14 +569,14 @@ class DiffRowGeneratorTest {
 
     @Test
     fun testProblemTooManyDiffRowsIssue65_NoInlineDiff() {
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(false)
-            .reportLinesUnchanged(true)
-            .oldTag { _ -> "~" }
-            .newTag { _ -> "**" }
-            .mergeOriginalRevised(true)
-            .inlineDiffByWord(false)
-            .build()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = false,
+            reportLinesUnchanged = true,
+            oldTag = { _, _ -> "~" },
+            newTag = { _, _ -> "**" },
+            mergeOriginalRevised = true,
+            inlineDiffByWord = false,
+        )
         val diffRows: List<DiffRow> = generator.generateDiffRows(
             listOf("Ich möchte nicht mit einem Bot sprechen.", "Ich soll das schon wieder wiederholen?"),
             listOf("Ich möchte nicht mehr mit dir sprechen. Leite mich weiter.", "Kannst du mich zum Kundendienst weiterleiten?")
@@ -598,11 +597,11 @@ Bengal tiger panther but singapura but bombay munchkin for cougar.""".split("\n"
 Russian blue leopard. Lion. Tabby scottish folded for russian blue, so savannah yettie? lynx. Tomcat singapura, cheetah.
 Bengal tiger panther but singapura but bombay munchkin for cougar. And more.""".split("\n").toTypedArray()
         )
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(true)
-            .ignoreWhiteSpaces(true)
-            .columnWidth(100)
-            .build()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            ignoreWhiteSpaces = true,
+            columnWidth = 100,
+        )
         val deltas = generator.generateDiffRows(original, revised)
         println(deltas)
     }
@@ -628,13 +627,13 @@ Bengal tiger panther but singapura but bombay munchkin for cougar. And more.""".
             2020-04-04T17:00:00.000Z,S,HHD_MAY20,Close,,,,,,,,,,,,,,,,,,,,,,,,
             2020-04-04T17:00:00.000Z,S,FHK_C23.5_MAY20,Close,,,,,,,,,,,,,,,,,,,,,,,,
         """.trimIndent()
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(true)
-            .mergeOriginalRevised(true)
-            .inlineDiffByWord(true)
-            .oldTag { _ -> "~" }
-            .newTag { _ -> "**" }
-            .build()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            mergeOriginalRevised = true,
+            inlineDiffByWord = true,
+            oldTag = { _, _ -> "~" },
+            newTag = { _, _ -> "**" },
+        )
         val rows: List<DiffRow> = generator.generateDiffRows(
             listOf(*original.split("\n").toTypedArray()),
             listOf(*revised.split("\n").toTypedArray())
@@ -648,12 +647,12 @@ Bengal tiger panther but singapura but bombay munchkin for cougar. And more.""".
     fun testCorrectChangeIssue114() {
         val original: List<String> = listOf("A", "B", "C", "D", "E")
         val revised: List<String> = listOf("a", "C", "", "E")
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(false)
-            .inlineDiffByWord(true)
-            .oldTag { _ -> "~" }
-            .newTag { _ -> "**" }
-            .build()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = false,
+            inlineDiffByWord = true,
+            oldTag = { _, _ -> "~" },
+            newTag = { _, _ -> "**" },
+        )
         val rows = generator.generateDiffRows(original, revised)
         for (diff in rows) {
             println(diff)
@@ -668,12 +667,12 @@ Bengal tiger panther but singapura but bombay munchkin for cougar. And more.""".
     fun testCorrectChangeIssue114_2() {
         val original: List<String> = listOf("A", "B", "C", "D", "E")
         val revised: List<String> = listOf("a", "C", "", "E")
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(true)
-            .inlineDiffByWord(true)
-            .oldTag { _ -> "~" }
-            .newTag { _ -> "**" }
-            .build()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            inlineDiffByWord = true,
+            oldTag = { _, _ -> "~" },
+            newTag = { _, _ -> "**" },
+        )
         val rows = generator.generateDiffRows(original, revised)
         for (diff in rows) {
             println(diff)
