@@ -5,16 +5,11 @@ import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     jacoco
-    id("com.github.ben-manes.versions") version "0.39.0"
 }
 
 configureVersioning()
 group = "io.github.petertrr"
 description = "A multiplatform Kotlin library for calculating text differences"
-
-repositories {
-    mavenCentral()
-}
 
 kotlin {
     explicitApi()
