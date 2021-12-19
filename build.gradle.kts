@@ -1,9 +1,11 @@
 import io.github.petertrr.configurePublishing
 import io.github.petertrr.configureVersioning
+import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.detekt)
     jacoco
 }
 
@@ -50,6 +52,18 @@ configurePublishing()
 
 tasks.withType<KotlinJvmTest> {
     useJUnitPlatform()
+}
+
+detekt {
+    buildUponDefaultConfig = true
+    config = files("detekt.yml")
+    autoCorrect = (findProperty("detektAutoCorrect") as String?)?.toBoolean() ?: true
+}
+dependencies {
+    detektPlugins(libs.detekt.formatting)
+}
+tasks.withType<Detekt> {
+    tasks.getByName("check").dependsOn(this)
 }
 
 // configure Jacoco-based code coverage reports for JVM tests executions

@@ -20,6 +20,8 @@
  * Implements the difference and patching engine
  */
 
+@file:Suppress("TooManyFunctions")
+
 package io.github.petertrr.diffutils
 
 import io.github.petertrr.diffutils.algorithm.DiffAlgorithm
@@ -53,9 +55,13 @@ public fun <T> diff(original: List<T>, revised: List<T>, includeEqualParts: Bool
 /**
  * Computes the difference between the original and revised text.
  */
-public fun diff(sourceText: String, targetText: String,
-         progress: DiffAlgorithmListener?): Patch<String> {
-    return diff(sourceText.split("\n"),
+public fun diff(
+    sourceText: String,
+    targetText: String,
+    progress: DiffAlgorithmListener?
+): Patch<String> {
+    return diff(
+        sourceText.split("\n"),
         targetText.split("\n"),
         progress
     )
@@ -73,7 +79,8 @@ public fun diff(sourceText: String, targetText: String,
  * @return The patch describing the difference between the original and revised sequences.
  */
 public fun <T> diff(
-    source: List<T>, target: List<T>,
+    source: List<T>,
+    target: List<T>,
     equalizer: ((T, T) -> Boolean)?
 ): Patch<T> {
     return if (equalizer != null) {
@@ -85,8 +92,10 @@ public fun <T> diff(
 }
 
 public fun <T> diff(
-    original: List<T>, revised: List<T>,
-    algorithm: DiffAlgorithm<T>, progress: DiffAlgorithmListener?
+    original: List<T>,
+    revised: List<T>,
+    algorithm: DiffAlgorithm<T>,
+    progress: DiffAlgorithmListener?
 ): Patch<T> {
     return diff(original, revised, algorithm, progress, false)
 }
@@ -104,8 +113,10 @@ public fun <T> diff(
  * `null`.
  */
 public fun <T> diff(
-    original: List<T>, revised: List<T>,
-    algorithm: DiffAlgorithm<T>, progress: DiffAlgorithmListener?,
+    original: List<T>,
+    revised: List<T>,
+    algorithm: DiffAlgorithm<T>,
+    progress: DiffAlgorithmListener?,
     includeEqualParts: Boolean
 ): Patch<T> {
     return Patch.generate(original, revised, algorithm.computeDiff(original, revised, progress), includeEqualParts)

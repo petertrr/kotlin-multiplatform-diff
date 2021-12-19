@@ -35,6 +35,7 @@ import kotlin.math.min
  * spaces or/and blank lines and so on. All parameters for generating are
  * optional. If you do not specify them, the class will use the default values.
  */
+@Suppress("LongParameterList")
 public class DiffRowGenerator(
     /**
      * Set the column width of generated lines of original and revised
@@ -50,7 +51,7 @@ public class DiffRowGenerator(
     /**
      * Provide an equalizer for diff processing.
      */
-    public var equalizer: ((String, String) -> Boolean) = if (ignoreWhiteSpaces) IGNORE_WHITESPACE_EQUALIZER else DEFAULT_EQUALIZER,
+    private var equalizer: ((String, String) -> Boolean) = if (ignoreWhiteSpaces) IGNORE_WHITESPACE_EQUALIZER else DEFAULT_EQUALIZER,
 
     /**
      * Per default each character is separately processed. Setting this parameter to `true`
@@ -163,7 +164,12 @@ public class DiffRowGenerator(
      *
      * @param endPos line number after previous delta end
      */
-    private fun transformDeltaIntoDiffRow(original: List<String>, endPos: Int, diffRows: MutableList<DiffRow>, delta: Delta<String>): Int {
+    private fun transformDeltaIntoDiffRow(
+        original: List<String>,
+        endPos: Int,
+        diffRows: MutableList<DiffRow>,
+        delta: Delta<String>
+    ): Int {
         val orig: Chunk<String> = delta.source
         val rev: Chunk<String> = delta.target
         for (line in original.subList(endPos, orig.position)) {
@@ -197,7 +203,7 @@ public class DiffRowGenerator(
     /**
      * Decompresses ChangeDeltas with different source and target size to a
      * ChangeDelta with same size and a following InsertDelta or DeleteDelta.
-     * With this problems of building DiffRows getting smaller.
+     * With this, problems of building DiffRows getting smaller.
      * If sizes are equal, returns a list with single element - [delta].
      */
     private fun decompressDeltas(delta: Delta<String>): List<Delta<String>> {
@@ -271,6 +277,7 @@ public class DiffRowGenerator(
      *
      * @param delta the given delta
      */
+    @Suppress("LongMethod")
     private fun generateInlineDiffs(delta: Delta<String>): List<DiffRow> {
         val orig = normalizeLines(delta.source.lines)
         val rev = normalizeLines(delta.target.lines)
@@ -278,7 +285,7 @@ public class DiffRowGenerator(
         val joinedRev: String = rev.joinToString("\n")
         val origList = inlineDiffSplitter.invoke(joinedOrig).toMutableList()
         val revList = inlineDiffSplitter.invoke(joinedRev).toMutableList()
-        // todo: `origList.toList` and `revList.toList` are needed because otherwise `wrapInTag` results in ConcurrentModificationException
+        // copying of `origList` and `revList` is needed because otherwise `wrapInTag` results in ConcurrentModificationException
         val inlineDeltas: MutableList<Delta<String>> = diff(origList.toList(), revList.toList(), equalizer)
             .deltas
             .asReversed()
@@ -287,7 +294,7 @@ public class DiffRowGenerator(
             val inlineOrig: Chunk<String> = inlineDelta.source
             val inlineRev: Chunk<String> = inlineDelta.target
             when (inlineDelta.type) {
-                 DeltaType.DELETE -> {
+                DeltaType.DELETE -> {
                     wrapInTag(
                         origList, inlineOrig.position, inlineOrig.position + inlineOrig.size(),
                         DiffRow.Tag.DELETE, oldTag, processDiffs, replaceOriginalLinefeedInChangesWithSpaces && mergeOriginalRevised
@@ -380,43 +387,43 @@ public class DiffRowGenerator(
     public companion object {
         internal val DEFAULT_EQUALIZER: (Any?, Any?) -> Boolean = { o1: Any?, o2: Any? -> o1 == o2 }
         internal val IGNORE_WHITESPACE_EQUALIZER: (String, String) -> Boolean = { original: String, revised: String ->
-                adjustWhitespace(
-                    original
-                ) == adjustWhitespace(revised)
-            }
+            adjustWhitespace(
+                original
+            ) == adjustWhitespace(revised)
+        }
         internal val LINE_NORMALIZER_FOR_HTML: (String) -> String = { normalize(it) }
 
         /**
          * Splitting lines by character to achieve char by char diff checking.
          */
         internal val SPLITTER_BY_CHARACTER = { line: String ->
-                val list: MutableList<String> = ArrayList(line.length)
-                for (character in line.toCharArray()) {
-                    list.add(character.toString())
-                }
-                list.toList()
+            val list: MutableList<String> = ArrayList(line.length)
+            for (character in line.toCharArray()) {
+                list.add(character.toString())
             }
+            list.toList()
+        }
         internal val SPLIT_BY_WORD_PATTERN = Regex("\\s+|[,.\\[\\](){}/\\\\*+\\-#]")
 
         /**
          * Splitting lines by word to achieve word by word diff checking.
          */
         internal val SPLITTER_BY_WORD = { line: String ->
-                splitStringPreserveDelimiter(
-                    line,
-                    SPLIT_BY_WORD_PATTERN
-                )
-            }
+            splitStringPreserveDelimiter(
+                line,
+                SPLIT_BY_WORD_PATTERN
+            )
+        }
         internal val WHITESPACE_PATTERN = Regex("\\s+")
 
         private fun adjustWhitespace(raw: String): String {
             return WHITESPACE_PATTERN.replace(raw.trim(), " ")
         }
 
-        internal fun splitStringPreserveDelimiter(str: String?, SPLIT_PATTERN: Regex): List<String> {
+        internal fun splitStringPreserveDelimiter(str: String?, splitPattern: Regex): List<String> {
             val list: MutableList<String> = mutableListOf()
             if (str != null) {
-                val matchResults = SPLIT_PATTERN.findAll(str)
+                val matchResults = splitPattern.findAll(str)
                 var pos = 0
                 for (matchResult in matchResults) {
                     if (pos < matchResult.range.first) {
@@ -440,10 +447,15 @@ public class DiffRowGenerator(
          * @param endPosition the position before which tag should should be closed.
          * @param tagGenerator the tag generator
          */
+        @Suppress("LongParameterList", "ComplexMethod", "LoopWithTooManyJumpStatements", "NestedBlockDepth")
         internal fun wrapInTag(
-            sequence: MutableList<String>, startPosition: Int,
-            endPosition: Int, tag: DiffRow.Tag, tagGenerator: (DiffRow.Tag, Boolean) -> String,
-            processDiffs: ((String) -> String)?, replaceLinefeedWithSpace: Boolean
+            sequence: MutableList<String>,
+            startPosition: Int,
+            endPosition: Int,
+            tag: DiffRow.Tag,
+            tagGenerator: (DiffRow.Tag, Boolean) -> String,
+            processDiffs: ((String) -> String)?,
+            replaceLinefeedWithSpace: Boolean,
         ): MutableList<String> {
             var endPos = endPosition
             while (endPos >= startPosition) {
@@ -466,7 +478,7 @@ public class DiffRowGenerator(
                 }
                 endPos--
 
-                //search position for end tag
+                // search position for end tag
                 while (endPos > startPosition) {
                     if ("\n" == sequence[endPos - 1]) {
                         if (replaceLinefeedWithSpace) {
