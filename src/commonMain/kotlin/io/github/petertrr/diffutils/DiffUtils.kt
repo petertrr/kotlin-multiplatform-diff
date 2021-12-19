@@ -39,7 +39,7 @@ import io.github.petertrr.diffutils.patch.PatchFailedException
  * @return The patch describing the difference between the original and revised sequences.
  */
 public fun <T> diff(original: List<T>, revised: List<T>, progress: DiffAlgorithmListener?): Patch<T> {
-    return diff(original, revised, MyersDiff<T>(), progress)
+    return diff(original, revised, MyersDiff(), progress)
 }
 
 public fun <T> diff(original: List<T>, revised: List<T>): Patch<T> {
@@ -168,7 +168,7 @@ private fun compressLines(lines: List<String>, delimiter: String): List<String> 
  * @return the revised text
  * @throws PatchFailedException if can't apply patch
  */
-@kotlin.Throws(PatchFailedException::class)
+@Throws(PatchFailedException::class)
 public fun <T> patch(original: List<T>, patch: Patch<T>): List<T> {
     return patch.applyTo(original)
 }

@@ -21,12 +21,11 @@ package io.github.petertrr.diffutils.patch
 /**
  * Holds the information about the part of text involved in the diff process
  *
- * Text is represented as `Object[]` because the diff engine is capable of handling more
- * than plain ascci. In fact, arrays or lists of any type that implements
- * [hashCode()][java.lang.Object.hashCode] and [equals()][java.lang.Object.equals]
- * correctly can be subject to differencing using this library.
+ * Text is represented as generic class `T` because the diff engine is capable of handling more
+ * than plain ASCII. In fact, arrays or lists of any type that implements
+ * `hashCode()` and `equals()` correctly can be subject to differencing using this library.
  * @param T The type of the compared elements in the 'lines'.
-) */
+ */
 public data class Chunk<T>(
     /**
      * the start position of chunk in the text
@@ -45,7 +44,7 @@ public data class Chunk<T>(
      * Verifies that this chunk's saved text matches the corresponding text in the given sequence.
      *
      * @param target the sequence to verify against.
-     * @throws com.github.difflib.patch.PatchFailedException
+     * @throws PatchFailedException
      */
     @Throws(PatchFailedException::class)
     public fun verify(target: List<T>) {

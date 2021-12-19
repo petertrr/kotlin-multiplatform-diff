@@ -34,31 +34,93 @@ import kotlin.math.min
  * the way of generating. For example, show inline diffs on not, ignoring white
  * spaces or/and blank lines and so on. All parameters for generating are
  * optional. If you do not specify them, the class will use the default values.
- *
- * These values are: showInlineDiffs = false; ignoreWhiteSpaces = true; mergeOriginalRevised = false;
- * reportLinesUnchanged = false; replaceOriginalLinefeedInChangesWithSpaces = false;
- *
- * For instantiating the DiffRowGenerator you should use the its builder. Like
- * in example
- * ```kotlin
- * val generator = DiffRowGenerator.create().showInlineDiffs(true)
- *     .ignoreWhiteSpaces(true).columnWidth(100).build()
- * ```
  */
-public class DiffRowGenerator private constructor(builder: Builder) {
-    private val columnWidth: Int
-    private var equalizer: ((String, String) -> Boolean)? = null  // nullable; if null, the default equalizer will be used
-    private val ignoreWhiteSpaces: Boolean// = true
-    private val inlineDiffSplitter: (String) -> List<String>  // non-nullable per original library
-    private val mergeOriginalRevised: Boolean// = false
-    private val newTag: (DiffRow.Tag, Boolean) -> String  // non-nullable, essential for algorithm
-    private val oldTag: (DiffRow.Tag, Boolean) -> String  // non-nullable, essential for algorithm
-    private val reportLinesUnchanged: Boolean// = false
-    private val lineNormalizer: (String) -> String  // non-nullable per original library
-    private val processDiffs: ((String) -> String)?  // nullable by design
-    private val showInlineDiffs: Boolean// = false
-    private val replaceOriginalLinefeedInChangesWithSpaces: Boolean// = false
+public class DiffRowGenerator(
+    /**
+     * Set the column width of generated lines of original and revised
+     * texts. Making it < 0 doesn't make any sense.
+     */
+    public val columnWidth: Int = 80,
 
+    /**
+     * Ignore white spaces in generating diff rows or not.
+     */
+    public val ignoreWhiteSpaces: Boolean = false,
+
+    /**
+     * Provide an equalizer for diff processing.
+     */
+    public var equalizer: ((String, String) -> Boolean) = if (ignoreWhiteSpaces) IGNORE_WHITESPACE_EQUALIZER else DEFAULT_EQUALIZER,
+
+    /**
+     * Per default each character is separately processed. Setting this parameter to `true`
+     * introduces processing by word, which does not deliver in word
+     * changes. Therefore, the whole word will be tagged as changed:
+     *
+     * ```
+     * <pre>
+     * false:    (aBa : aba) --  changed: a(B)a : a(b)a
+     * true:     (aBa : aba) --  changed: (aBa) : (aba)
+     * </pre> *
+     * ```
+     */
+    inlineDiffByWord: Boolean = false,
+
+    /**
+     * To provide some customized splitting a splitter can be provided. Here
+     * someone could think about sentence splitter, comma splitter or stuff
+     * like that.
+     */
+    public val inlineDiffSplitter: (String) -> List<String> = if (inlineDiffByWord) SPLITTER_BY_WORD else SPLITTER_BY_CHARACTER,
+
+    /**
+     * Merge the complete result within the original text. This makes sense
+     * for one line display.
+     */
+    public val mergeOriginalRevised: Boolean = false,
+
+    /**
+     * Generator for New-Text-Tags.
+     */
+    public val newTag: (DiffRow.Tag, Boolean) -> String = { _: DiffRow.Tag, f: Boolean -> if (f) "<span class=\"editNewInline\">" else "</span>" },
+
+    /**
+     * Generator for Old-Text-Tags.
+     */
+    public val oldTag: (DiffRow.Tag, Boolean) -> String = { _: DiffRow.Tag, f: Boolean -> if (f) "<span class=\"editOldInline\">" else "</span>" },
+
+    /**
+     * Give the original old and new text lines to DiffRow without any
+     * additional processing and without any tags to highlight the change.
+     */
+    public val reportLinesUnchanged: Boolean = false,
+
+    /**
+     * By default DiffRowGenerator preprocesses lines for HTML output. Tabs
+     * and special HTML characters like "&lt;" are replaced with its encoded
+     * value. To change this you can provide a customized line normalizer
+     * here.
+     */
+    public val lineNormalizer: (String) -> String = LINE_NORMALIZER_FOR_HTML,
+
+    /**
+     * Optional processor for diffed text parts. Here e.g. white characters could be
+     * replaced by something visible.
+     */
+    public val processDiffs: ((String) -> String)? = null,
+
+    /**
+     * Show inline diffs in generating diff rows or not. Default: false.
+     */
+    public val showInlineDiffs: Boolean = false,
+
+    /**
+     * Sometimes it happens that a change contains multiple lines. If there
+     * is no correspondence in old and new. To keep the merged line more
+     * readable the linefeeds could be replaced by spaces.
+     */
+    public val replaceOriginalLinefeedInChangesWithSpaces: Boolean = false,
+) {
     /**
      * Get the DiffRows describing the difference between original and revised
      * texts. Useful for displaying side-by-side diff.
@@ -315,216 +377,6 @@ public class DiffRowGenerator private constructor(builder: Builder) {
         }
     }
 
-    /**
-     * This class used for building the DiffRowGenerator.
-     */
-    public class Builder internal constructor() {
-        internal var showInlineDiffs = false
-        internal var ignoreWhiteSpaces = false
-        internal var oldTag = { _: DiffRow.Tag, f: Boolean -> if (f) "<span class=\"editOldInline\">" else "</span>" }
-        internal var newTag = { _: DiffRow.Tag, f: Boolean -> if (f) "<span class=\"editNewInline\">" else "</span>" }
-        internal var columnWidth = 0
-        internal var mergeOriginalRevised = false
-        internal var reportLinesUnchanged = false
-        internal var inlineDiffSplitter = SPLITTER_BY_CHARACTER
-        internal var lineNormalizer = LINE_NORMALIZER_FOR_HTML
-        internal var processDiffs: ((String) -> String)? = null
-        internal var equalizer: ((String, String) -> Boolean)? = null
-        internal var replaceOriginalLinefeedInChangesWithSpaces = false
-
-        /**
-         * Show inline diffs in generating diff rows or not.
-         *
-         * @param val the value to set. Default: false.
-         * @return builder with configured showInlineDiff parameter
-         */
-        public fun showInlineDiffs(`val`: Boolean): Builder {
-            showInlineDiffs = `val`
-            return this
-        }
-
-        /**
-         * Ignore white spaces in generating diff rows or not.
-         *
-         * @param val the value to set. Default: true.
-         * @return builder with configured ignoreWhiteSpaces parameter
-         */
-        public fun ignoreWhiteSpaces(`val`: Boolean): Builder {
-            ignoreWhiteSpaces = `val`
-            return this
-        }
-
-        /**
-         * Give the original old and new text lines to DiffRow without any
-         * additional processing and without any tags to highlight the change.
-         *
-         * @param val the value to set. Default: false.
-         * @return builder with configured reportLinesUnWrapped parameter
-         */
-        public fun reportLinesUnchanged(`val`: Boolean): Builder {
-            reportLinesUnchanged = `val`
-            return this
-        }
-
-        /**
-         * Generator for Old-Text-Tags.
-         *
-         * @param generator the tag generator
-         * @return builder with configured ignoreBlankLines parameter
-         */
-        public fun oldTag(generator: (DiffRow.Tag, Boolean) -> String): Builder {
-            oldTag = generator
-            return this
-        }
-
-        /**
-         * Generator for Old-Text-Tags.
-         *
-         * @param generator the tag generator
-         * @return builder with configured ignoreBlankLines parameter
-         */
-        public fun oldTag(generator: (Boolean) -> String): Builder {
-            oldTag = { _: DiffRow.Tag, f: Boolean -> generator.invoke(f) }
-            return this
-        }
-
-        /**
-         * Generator for New-Text-Tags.
-         *
-         * @param generator
-         * @return
-         */
-        public fun newTag(generator: (DiffRow.Tag, Boolean) -> String): Builder {
-            newTag = generator
-            return this
-        }
-
-        /**
-         * Generator for New-Text-Tags.
-         *
-         * @param generator
-         * @return
-         */
-        public fun newTag(generator: (Boolean) -> String): Builder {
-            newTag = { _: DiffRow.Tag, f: Boolean -> generator.invoke(f) }
-            return this
-        }
-
-        /**
-         * Processor for diffed text parts. Here e.g. white characters could be
-         * replaced by something visible.
-         *
-         * @param processDiffs
-         * @return
-         */
-        public fun processDiffs(processDiffs: (String) -> String): Builder {
-            this.processDiffs = processDiffs
-            return this
-        }
-
-        /**
-         * Set the column width of generated lines of original and revised
-         * texts.
-         *
-         * @param width the width to set. Making it < 0 doesn't make any sense.
-         * Default 80. @return builder with config of column width
-         */
-        public fun columnWidth(width: Int): Builder {
-            if (width >= 0) {
-                columnWidth = width
-            }
-            return this
-        }
-
-        /**
-         * Build the DiffRowGenerator. If some parameters is not set, the
-         * default values are used.
-         *
-         * @return the customized DiffRowGenerator
-         */
-        public fun build(): DiffRowGenerator {
-            return DiffRowGenerator(this)
-        }
-
-        /**
-         * Merge the complete result within the original text. This makes sense
-         * for one line display.
-         *
-         * @param mergeOriginalRevised
-         * @return
-         */
-        public fun mergeOriginalRevised(mergeOriginalRevised: Boolean): Builder {
-            this.mergeOriginalRevised = mergeOriginalRevised
-            return this
-        }
-
-        /**
-         * Per default each character is separatly processed. This variant
-         * introduces processing by word, which does not deliver in word
-         * changes. Therefore the whole word will be tagged as changed:
-         *
-         * <pre>
-         * false:    (aBa : aba) --  changed: a(B)a : a(b)a
-         * true:     (aBa : aba) --  changed: (aBa) : (aba)
-        </pre> *
-         */
-        public fun inlineDiffByWord(inlineDiffByWord: Boolean): Builder {
-            inlineDiffSplitter = if (inlineDiffByWord) SPLITTER_BY_WORD else SPLITTER_BY_CHARACTER
-            return this
-        }
-
-        /**
-         * To provide some customized splitting a splitter can be provided. Here
-         * someone could think about sentence splitter, comma splitter or stuff
-         * like that.
-         *
-         * @param inlineDiffSplitter
-         * @return
-         */
-        public fun inlineDiffBySplitter(inlineDiffSplitter: (String) -> List<String>): Builder {
-            this.inlineDiffSplitter = inlineDiffSplitter
-            return this
-        }
-
-        /**
-         * By default DiffRowGenerator preprocesses lines for HTML output. Tabs
-         * and special HTML characters like "&lt;" are replaced with its encoded
-         * value. To change this you can provide a customized line normalizer
-         * here.
-         *
-         * @param lineNormalizer
-         * @return
-         */
-        public fun lineNormalizer(lineNormalizer: (String) -> String): Builder {
-            this.lineNormalizer = lineNormalizer
-            return this
-        }
-
-        /**
-         * Provide an equalizer for diff processing.
-         *
-         * @param equalizer equalizer for diff processing.
-         * @return builder with configured equalizer parameter
-         */
-        public fun equalizer(equalizer: (String, String) -> Boolean): Builder {
-            this.equalizer = equalizer
-            return this
-        }
-
-        /**
-         * Sometimes it happens that a change contains multiple lines. If there
-         * is no correspondence in old and new. To keep the merged line more
-         * readable the linefeeds could be replaced by spaces.
-         *
-         * @param replace
-         * @return
-         */
-        public fun replaceOriginalLinefeedInChangesWithSpaces(replace: Boolean): Builder {
-            replaceOriginalLinefeedInChangesWithSpaces = replace
-            return this
-        }
-    }
-
     public companion object {
         internal val DEFAULT_EQUALIZER: (Any?, Any?) -> Boolean = { o1: Any?, o2: Any? -> o1 == o2 }
         internal val IGNORE_WHITESPACE_EQUALIZER: (String, String) -> Boolean = { original: String, revised: String ->
@@ -556,10 +408,6 @@ public class DiffRowGenerator private constructor(builder: Builder) {
                 )
             }
         internal val WHITESPACE_PATTERN = Regex("\\s+")
-
-        public fun create(): Builder {
-            return Builder()
-        }
 
         private fun adjustWhitespace(raw: String): String {
             return WHITESPACE_PATTERN.replace(raw.trim(), " ")
@@ -637,26 +485,5 @@ public class DiffRowGenerator private constructor(builder: Builder) {
             }
             return sequence
         }
-
-
-    }
-
-    init {
-        showInlineDiffs = builder.showInlineDiffs
-        ignoreWhiteSpaces = builder.ignoreWhiteSpaces
-        oldTag = builder.oldTag
-        newTag = builder.newTag
-        columnWidth = builder.columnWidth
-        mergeOriginalRevised = builder.mergeOriginalRevised
-        inlineDiffSplitter = builder.inlineDiffSplitter
-        equalizer = if (builder.equalizer != null) {
-            builder.equalizer
-        } else {
-            if (ignoreWhiteSpaces) IGNORE_WHITESPACE_EQUALIZER else DEFAULT_EQUALIZER
-        }
-        reportLinesUnchanged = builder.reportLinesUnchanged
-        lineNormalizer = builder.lineNormalizer
-        processDiffs = builder.processDiffs
-        replaceOriginalLinefeedInChangesWithSpaces = builder.replaceOriginalLinefeedInChangesWithSpaces
     }
 }

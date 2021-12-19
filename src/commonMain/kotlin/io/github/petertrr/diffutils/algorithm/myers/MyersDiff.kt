@@ -45,7 +45,7 @@ internal class MyersDiff<T>(private val equalizer: (T, T) -> Boolean = { t1, t2 
      * @param orig The original sequence.
      * @param rev The revised sequence.
      * @return A minimum [PathNode] across the differences graph.
-     * @throws DifferentiationFailedException if a diff path could not be found.
+     * @throws IllegalStateException if a diff path could not be found.
      */
     private fun buildPath(orig: List<T>, rev: List<T>, progress: DiffAlgorithmListener?): PathNode? {
         // these are local constants
@@ -74,13 +74,13 @@ internal class MyersDiff<T>(private val equalizer: (T, T) -> Boolean = { t1, t2 
                 }
                 diagonal[kminus] = null // no longer used
                 var j = i - k
-                var node = PathNode(i, j, false, false, prev)
+                var node = PathNode(i, j, snake = false, bootstrap = false, prev = prev)
                 while (i < N && j < M && equalizer.invoke(orig[i], rev[j])) {
                     i++
                     j++
                 }
                 if (i != node.i) {
-                    node = PathNode(i, j, true, false, node)
+                    node = PathNode(i, j, snake = true, bootstrap = false, prev = node)
                 }
                 diagonal[kmiddle] = node
                 if (i >= N && j >= M) {
@@ -94,14 +94,13 @@ internal class MyersDiff<T>(private val equalizer: (T, T) -> Boolean = { t1, t2 
     }
 
     /**
-     * Constructs a [Patch] from a difference path.
+     * Constructs a patch from a difference path.
      *
      * @param actualPath The path.
      * @param orig The original sequence.
      * @param rev The revised sequence.
-     * @return A [Patch] script corresponding to the path.
-     * @throws DifferentiationFailedException if a [Patch] could not be built from the given
-     * path.
+     * @return A list of [Change]s corresponding to the path.
+     * @throws IllegalStateException if a patch could not be built from the given path.
      */
     private fun buildRevision(actualPath: PathNode?, orig: List<T>, rev: List<T>): List<Change> {
         var path: PathNode? = actualPath
@@ -114,14 +113,14 @@ internal class MyersDiff<T>(private val equalizer: (T, T) -> Boolean = { t1, t2 
             val i: Int = path.i
             val j: Int = path.j
             path = path.prev
-            val ianchor: Int = path!!.i
-            val janchor: Int = path.j
-            if (ianchor == i && janchor != j) {
-                changes.add(Change(DeltaType.INSERT, ianchor, i, janchor, j))
-            } else if (ianchor != i && janchor == j) {
-                changes.add(Change(DeltaType.DELETE, ianchor, i, janchor, j))
+            val iAnchor: Int = path!!.i
+            val jAnchor: Int = path.j
+            if (iAnchor == i && jAnchor != j) {
+                changes.add(Change(DeltaType.INSERT, iAnchor, i, jAnchor, j))
+            } else if (iAnchor != i && jAnchor == j) {
+                changes.add(Change(DeltaType.DELETE, iAnchor, i, jAnchor, j))
             } else {
-                changes.add(Change(DeltaType.CHANGE, ianchor, i, janchor, j))
+                changes.add(Change(DeltaType.CHANGE, iAnchor, i, jAnchor, j))
             }
             if (path.snake) {
                 path = path.prev

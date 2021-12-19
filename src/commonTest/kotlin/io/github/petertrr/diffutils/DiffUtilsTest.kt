@@ -18,8 +18,6 @@
  */
 package io.github.petertrr.diffutils
 
-import io.github.petertrr.diffutils.diff
-import io.github.petertrr.diffutils.diffInline
 import io.github.petertrr.diffutils.patch.ChangeDelta
 import io.github.petertrr.diffutils.patch.Chunk
 import io.github.petertrr.diffutils.patch.DeleteDelta
@@ -172,7 +170,7 @@ class DiffUtilsTest {
         assertEquals(Chunk(0, listOf("hhh")), delta.target)
         delta = patch.deltas[1]
         assertTrue(delta is InsertDelta)
-        assertEquals(Chunk(1, emptyList<String>()), delta.source)
+        assertEquals(Chunk(1, emptyList()), delta.source)
         assertEquals(Chunk(1, listOf("jjj", "kkk")), delta.target)
     }
 
