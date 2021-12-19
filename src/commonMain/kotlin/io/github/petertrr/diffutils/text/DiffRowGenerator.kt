@@ -164,7 +164,12 @@ public class DiffRowGenerator(
      *
      * @param endPos line number after previous delta end
      */
-    private fun transformDeltaIntoDiffRow(original: List<String>, endPos: Int, diffRows: MutableList<DiffRow>, delta: Delta<String>): Int {
+    private fun transformDeltaIntoDiffRow(
+        original: List<String>,
+        endPos: Int,
+        diffRows: MutableList<DiffRow>,
+        delta: Delta<String>
+    ): Int {
         val orig: Chunk<String> = delta.source
         val rev: Chunk<String> = delta.target
         for (line in original.subList(endPos, orig.position)) {
@@ -289,7 +294,7 @@ public class DiffRowGenerator(
             val inlineOrig: Chunk<String> = inlineDelta.source
             val inlineRev: Chunk<String> = inlineDelta.target
             when (inlineDelta.type) {
-                 DeltaType.DELETE -> {
+                DeltaType.DELETE -> {
                     wrapInTag(
                         origList, inlineOrig.position, inlineOrig.position + inlineOrig.size(),
                         DiffRow.Tag.DELETE, oldTag, processDiffs, replaceOriginalLinefeedInChangesWithSpaces && mergeOriginalRevised
@@ -382,33 +387,33 @@ public class DiffRowGenerator(
     public companion object {
         internal val DEFAULT_EQUALIZER: (Any?, Any?) -> Boolean = { o1: Any?, o2: Any? -> o1 == o2 }
         internal val IGNORE_WHITESPACE_EQUALIZER: (String, String) -> Boolean = { original: String, revised: String ->
-                adjustWhitespace(
-                    original
-                ) == adjustWhitespace(revised)
-            }
+            adjustWhitespace(
+                original
+            ) == adjustWhitespace(revised)
+        }
         internal val LINE_NORMALIZER_FOR_HTML: (String) -> String = { normalize(it) }
 
         /**
          * Splitting lines by character to achieve char by char diff checking.
          */
         internal val SPLITTER_BY_CHARACTER = { line: String ->
-                val list: MutableList<String> = ArrayList(line.length)
-                for (character in line.toCharArray()) {
-                    list.add(character.toString())
-                }
-                list.toList()
+            val list: MutableList<String> = ArrayList(line.length)
+            for (character in line.toCharArray()) {
+                list.add(character.toString())
             }
+            list.toList()
+        }
         internal val SPLIT_BY_WORD_PATTERN = Regex("\\s+|[,.\\[\\](){}/\\\\*+\\-#]")
 
         /**
          * Splitting lines by word to achieve word by word diff checking.
          */
         internal val SPLITTER_BY_WORD = { line: String ->
-                splitStringPreserveDelimiter(
-                    line,
-                    SPLIT_BY_WORD_PATTERN
-                )
-            }
+            splitStringPreserveDelimiter(
+                line,
+                SPLIT_BY_WORD_PATTERN
+            )
+        }
         internal val WHITESPACE_PATTERN = Regex("\\s+")
 
         private fun adjustWhitespace(raw: String): String {
@@ -473,7 +478,7 @@ public class DiffRowGenerator(
                 }
                 endPos--
 
-                //search position for end tag
+                // search position for end tag
                 while (endPos > startPosition) {
                     if ("\n" == sequence[endPos - 1]) {
                         if (replaceLinefeedWithSpace) {

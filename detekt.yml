@@ -3,3 +3,7 @@ style:
   MaxLineLength:
     active: true
     maxLineLength: 180
+formatting:
+  active: true
+  MaximumLineLength:
+    active: false

@@ -20,9 +20,10 @@ package io.github.petertrr.diffutils.algorithm
 
 import io.github.petertrr.diffutils.patch.DeltaType
 
-public data class Change(val deltaType: DeltaType,
-                         val startOriginal: Int,
-                         val endOriginal: Int,
-                         val startRevised: Int,
-                         val endRevised: Int
+public data class Change(
+    val deltaType: DeltaType,
+    val startOriginal: Int,
+    val endOriginal: Int,
+    val startRevised: Int,
+    val endRevised: Int
 )

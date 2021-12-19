@@ -56,6 +56,10 @@ tasks.withType<KotlinJvmTest> {
 detekt {
     buildUponDefaultConfig = true
     config = files("detekt.yml")
+    autoCorrect = (findProperty("detektAutoCorrect") as String?)?.toBoolean() ?: true
+}
+dependencies {
+    detektPlugins(libs.detekt.formatting)
 }
 
 // configure Jacoco-based code coverage reports for JVM tests executions

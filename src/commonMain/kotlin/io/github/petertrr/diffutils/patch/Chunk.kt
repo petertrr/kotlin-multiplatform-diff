@@ -39,7 +39,7 @@ public data class Chunk<T>(
      * the positions of changed lines of chunk in the text
      */
     val changePosition: List<Int>? = null
-    ) {
+) {
     /**
      * Verifies that this chunk's saved text matches the corresponding text in the given sequence.
      *

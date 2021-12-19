@@ -52,7 +52,8 @@ internal fun wrapText(line: String, columnWidth: Int): String {
     while (length > widthIndex) {
         var breakPoint = widthIndex + delimiter * count
         if (b[breakPoint - 1].isHighSurrogate() &&
-            b[breakPoint].isLowSurrogate()) {
+            b[breakPoint].isLowSurrogate()
+        ) {
             // Shift a breakpoint that would split a supplemental code-point.
             breakPoint += 1
             if (breakPoint == b.length) {
