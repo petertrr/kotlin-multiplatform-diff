@@ -20,6 +20,8 @@
  * Implements the difference and patching engine
  */
 
+@file:Suppress("TooManyFunctions")
+
 package io.github.petertrr.diffutils
 
 import io.github.petertrr.diffutils.algorithm.DiffAlgorithm

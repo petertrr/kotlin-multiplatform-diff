@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.detekt)
     jacoco
 }
 
@@ -50,6 +51,11 @@ configurePublishing()
 
 tasks.withType<KotlinJvmTest> {
     useJUnitPlatform()
+}
+
+detekt {
+    buildUponDefaultConfig = true
+    config = files("detekt.yml")
 }
 
 // configure Jacoco-based code coverage reports for JVM tests executions

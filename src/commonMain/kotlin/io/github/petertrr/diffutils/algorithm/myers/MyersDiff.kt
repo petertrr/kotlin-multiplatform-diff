@@ -33,7 +33,7 @@ internal class MyersDiff<T>(private val equalizer: (T, T) -> Boolean = { t1, t2 
     override fun computeDiff(source: List<T>, target: List<T>, progress: DiffAlgorithmListener?): List<Change> {
         progress?.diffStart()
         val path = buildPath(source, target, progress)
-        val result = buildRevision(path, source, target)
+        val result = buildRevision(path)
         progress?.diffEnd()
         return result
     }
@@ -49,15 +49,15 @@ internal class MyersDiff<T>(private val equalizer: (T, T) -> Boolean = { t1, t2 
      */
     private fun buildPath(orig: List<T>, rev: List<T>, progress: DiffAlgorithmListener?): PathNode? {
         // these are local constants
-        val N = orig.size
-        val M = rev.size
-        val MAX = N + M + 1
-        val size = 1 + 2 * MAX
+        val origSize = orig.size
+        val revSize = rev.size
+        val max = origSize + revSize + 1
+        val size = 1 + 2 * max
         val middle = size / 2
         val diagonal: Array<PathNode?> = arrayOfNulls(size)
         diagonal[middle + 1] = PathNode(0, -1, snake = true, bootstrap = true, prev = null)
-        for (d in 0 until MAX) {
-            progress?.diffStep(d, MAX)
+        for (d in 0 until max) {
+            progress?.diffStep(d, max)
             var k = -d
             while (k <= d) {
                 val kmiddle = middle + k
@@ -75,7 +75,7 @@ internal class MyersDiff<T>(private val equalizer: (T, T) -> Boolean = { t1, t2 
                 diagonal[kminus] = null // no longer used
                 var j = i - k
                 var node = PathNode(i, j, snake = false, bootstrap = false, prev = prev)
-                while (i < N && j < M && equalizer.invoke(orig[i], rev[j])) {
+                while (i < origSize && j < revSize && equalizer.invoke(orig[i], rev[j])) {
                     i++
                     j++
                 }
@@ -83,7 +83,7 @@ internal class MyersDiff<T>(private val equalizer: (T, T) -> Boolean = { t1, t2 
                     node = PathNode(i, j, snake = true, bootstrap = false, prev = node)
                 }
                 diagonal[kmiddle] = node
-                if (i >= N && j >= M) {
+                if (i >= origSize && j >= revSize) {
                     return diagonal[kmiddle]
                 }
                 k += 2
@@ -102,7 +102,7 @@ internal class MyersDiff<T>(private val equalizer: (T, T) -> Boolean = { t1, t2 
      * @return A list of [Change]s corresponding to the path.
      * @throws IllegalStateException if a patch could not be built from the given path.
      */
-    private fun buildRevision(actualPath: PathNode?, orig: List<T>, rev: List<T>): List<Change> {
+    private fun buildRevision(actualPath: PathNode?): List<Change> {
         var path: PathNode? = actualPath
         val changes: MutableList<Change> = mutableListOf()
         if (path!!.snake) {

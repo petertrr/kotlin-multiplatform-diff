@@ -25,7 +25,7 @@ import io.github.petertrr.diffutils.algorithm.Change
  *
  * @param T The type of the compared elements in the 'lines'.
  */
-public class Patch<T>(estimatedPatchSize: Int = 10) {
+public class Patch<T> {
     public var deltas: MutableList<Delta<T>> = arrayListOf()
         get() {
             field.sortBy { it.source.position }
@@ -84,15 +84,13 @@ public class Patch<T>(estimatedPatchSize: Int = 10) {
             return Chunk(start, data.subList(start, end))
         }
 
-        public fun <T> generate(original: List<T>, revised: List<T>, _changes: List<Change>, includeEquals: Boolean): Patch<T> {
-            val patch = Patch<T>(_changes.size)
+        public fun <T> generate(original: List<T>, revised: List<T>, changes: List<Change>, includeEquals: Boolean): Patch<T> {
+            val patch = Patch<T>()
             var startOriginal = 0
             var startRevised = 0
-            var changes: List<Change> = _changes
-            if (includeEquals) {
-                changes = _changes.sortedBy { it.startOriginal }
-            }
-            for (change in changes) {
+            changes.run {
+                if (includeEquals) sortedBy { it.startOriginal } else this
+            }.forEach { change ->
                 if (includeEquals && startOriginal < change.startOriginal) {
                     patch.addDelta(
                         EqualDelta(

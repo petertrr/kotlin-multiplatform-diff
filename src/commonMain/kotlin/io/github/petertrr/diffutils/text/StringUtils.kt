@@ -32,16 +32,6 @@ internal fun normalize(str: String): String {
     return htmlEntities(str).replace("\t", "    ")
 }
 
-internal fun wrapText(list: List<String>, columnWidth: Int): List<String> {
-    return list
-        .map { line ->
-            wrapText(
-                line,
-                columnWidth
-            )
-        }
-}
-
 /**
  * Wrap the text with the given column width
  *

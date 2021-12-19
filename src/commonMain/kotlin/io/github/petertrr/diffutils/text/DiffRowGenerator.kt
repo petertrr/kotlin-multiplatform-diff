@@ -35,6 +35,7 @@ import kotlin.math.min
  * spaces or/and blank lines and so on. All parameters for generating are
  * optional. If you do not specify them, the class will use the default values.
  */
+@Suppress("LongParameterList")
 public class DiffRowGenerator(
     /**
      * Set the column width of generated lines of original and revised
@@ -50,7 +51,7 @@ public class DiffRowGenerator(
     /**
      * Provide an equalizer for diff processing.
      */
-    public var equalizer: ((String, String) -> Boolean) = if (ignoreWhiteSpaces) IGNORE_WHITESPACE_EQUALIZER else DEFAULT_EQUALIZER,
+    private var equalizer: ((String, String) -> Boolean) = if (ignoreWhiteSpaces) IGNORE_WHITESPACE_EQUALIZER else DEFAULT_EQUALIZER,
 
     /**
      * Per default each character is separately processed. Setting this parameter to `true`
@@ -197,7 +198,7 @@ public class DiffRowGenerator(
     /**
      * Decompresses ChangeDeltas with different source and target size to a
      * ChangeDelta with same size and a following InsertDelta or DeleteDelta.
-     * With this problems of building DiffRows getting smaller.
+     * With this, problems of building DiffRows getting smaller.
      * If sizes are equal, returns a list with single element - [delta].
      */
     private fun decompressDeltas(delta: Delta<String>): List<Delta<String>> {
@@ -271,6 +272,7 @@ public class DiffRowGenerator(
      *
      * @param delta the given delta
      */
+    @Suppress("LongMethod")
     private fun generateInlineDiffs(delta: Delta<String>): List<DiffRow> {
         val orig = normalizeLines(delta.source.lines)
         val rev = normalizeLines(delta.target.lines)
@@ -278,7 +280,7 @@ public class DiffRowGenerator(
         val joinedRev: String = rev.joinToString("\n")
         val origList = inlineDiffSplitter.invoke(joinedOrig).toMutableList()
         val revList = inlineDiffSplitter.invoke(joinedRev).toMutableList()
-        // todo: `origList.toList` and `revList.toList` are needed because otherwise `wrapInTag` results in ConcurrentModificationException
+        // copying of `origList` and `revList` is needed because otherwise `wrapInTag` results in ConcurrentModificationException
         val inlineDeltas: MutableList<Delta<String>> = diff(origList.toList(), revList.toList(), equalizer)
             .deltas
             .asReversed()
@@ -413,10 +415,10 @@ public class DiffRowGenerator(
             return WHITESPACE_PATTERN.replace(raw.trim(), " ")
         }
 
-        internal fun splitStringPreserveDelimiter(str: String?, SPLIT_PATTERN: Regex): List<String> {
+        internal fun splitStringPreserveDelimiter(str: String?, splitPattern: Regex): List<String> {
             val list: MutableList<String> = mutableListOf()
             if (str != null) {
-                val matchResults = SPLIT_PATTERN.findAll(str)
+                val matchResults = splitPattern.findAll(str)
                 var pos = 0
                 for (matchResult in matchResults) {
                     if (pos < matchResult.range.first) {
@@ -440,10 +442,15 @@ public class DiffRowGenerator(
          * @param endPosition the position before which tag should should be closed.
          * @param tagGenerator the tag generator
          */
+        @Suppress("LongParameterList", "ComplexMethod", "LoopWithTooManyJumpStatements", "NestedBlockDepth")
         internal fun wrapInTag(
-            sequence: MutableList<String>, startPosition: Int,
-            endPosition: Int, tag: DiffRow.Tag, tagGenerator: (DiffRow.Tag, Boolean) -> String,
-            processDiffs: ((String) -> String)?, replaceLinefeedWithSpace: Boolean
+            sequence: MutableList<String>,
+            startPosition: Int,
+            endPosition: Int,
+            tag: DiffRow.Tag,
+            tagGenerator: (DiffRow.Tag, Boolean) -> String,
+            processDiffs: ((String) -> String)?,
+            replaceLinefeedWithSpace: Boolean,
         ): MutableList<String> {
             var endPos = endPosition
             while (endPos >= startPosition) {
