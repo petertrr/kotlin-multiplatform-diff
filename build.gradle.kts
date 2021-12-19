@@ -1,5 +1,6 @@
 import io.github.petertrr.configurePublishing
 import io.github.petertrr.configureVersioning
+import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
 
 plugins {
@@ -60,6 +61,9 @@ detekt {
 }
 dependencies {
     detektPlugins(libs.detekt.formatting)
+}
+tasks.withType<Detekt> {
+    tasks.getByName("check").dependsOn(this)
 }
 
 // configure Jacoco-based code coverage reports for JVM tests executions
