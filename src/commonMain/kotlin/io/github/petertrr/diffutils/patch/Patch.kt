@@ -43,7 +43,7 @@ public class Patch<T> {
         val it = deltas.listIterator(deltas.size)
         while (it.hasPrevious()) {
             val delta = it.previous()
-            delta.applyTo(result)
+            delta.verifyAndApplyTo(result)
         }
         return result
     }
