@@ -60,4 +60,34 @@ class PatchTest {
             fail(e.message)
         }
     }
+
+    @Test
+    fun testPatch_Change_withExceptionProcessor() {
+        val changeTest_from = listOf("aaa", "bbb", "ccc", "ddd")
+        val changeTest_to = listOf("aaa", "bxb", "cxc", "ddd")
+        val patch: Patch<String> = diff(changeTest_from, changeTest_to)
+        patch.withConflictOutput(ConflictProducingConflictOutput())
+        try {
+            val data: List<String> = patch(
+                changeTest_from.toMutableList().apply { this[2] = "CDC" },
+                patch
+            )
+            assertEquals(9, data.size)
+            assertEquals(
+                listOf(
+                    "aaa",
+                    "<<<<<< HEAD",
+                    "bbb",
+                    "CDC",
+                    "======",
+                    "bbb",
+                    "ccc",
+                    ">>>>>>> PATCH",
+                    "ddd"
+                ), data
+            )
+        } catch (e: PatchFailedException) {
+            fail(e.message)
+        }
+    }
 }

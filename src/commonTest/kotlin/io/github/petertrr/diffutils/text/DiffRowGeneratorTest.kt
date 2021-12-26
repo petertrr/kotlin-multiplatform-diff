@@ -683,4 +683,35 @@ Bengal tiger panther but singapura but bombay munchkin for cougar. And more.""".
         )
         assertEquals(DiffRow(DiffRow.Tag.DELETE, "~B~", ""), rows[1])
     }
+
+    @Test
+    fun testIssue119WrongContextLength() {
+        val original: String =
+            """
+                const world: string = 'world',
+                      p: number | undefined = 42;
+
+                console.log(`Hello, ${'$'}world}!`);
+            """.trimIndent()
+        val revised: String =
+            """
+                const world: string = 'world';
+                const p: number | undefined = 42;
+
+                console.log(`Hello, ${'$'}world}!`);
+            """.trimIndent()
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            mergeOriginalRevised = true,
+            inlineDiffByWord = true,
+            oldTag = { _, _ -> "~" },
+            newTag = { _, _ -> "**" },
+            )
+        val rows: List<DiffRow> = generator.generateDiffRows(
+            original.split("\n"),
+            revised.split("\n")
+        )
+        rows.filter { it.tag != DiffRow.Tag.EQUAL }
+            .forEach { println(it) }
+    }
 }

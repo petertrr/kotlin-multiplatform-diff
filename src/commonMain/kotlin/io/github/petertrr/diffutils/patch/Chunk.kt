@@ -46,13 +46,14 @@ public data class Chunk<T>(
      * @param target the sequence to verify against.
      * @throws PatchFailedException
      */
-    @Throws(PatchFailedException::class)
     public fun verify(target: List<T>): VerifyChunk {
         return if (position > target.size || last() > target.size) {
             VerifyChunk.POSITION_OUT_OF_TARGET
-        } else if ((0 until size()).any { i ->
-            target[position + i] != lines[i]
-        }) {
+        } else if (
+            (0 until size()).any { i ->
+                target[position + i] != lines[i]
+            }
+        ) {
             VerifyChunk.CONTENT_DOES_NOT_MATCH_TARGET
         } else {
             VerifyChunk.OK

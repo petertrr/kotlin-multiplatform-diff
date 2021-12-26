@@ -24,8 +24,11 @@ import io.github.petertrr.diffutils.algorithm.Change
  * Describes the patch holding all deltas between the original and revised texts.
  *
  * @param T The type of the compared elements in the 'lines'.
+ * @property conflictOutput Alter normal conflict output behaviour to e.g. inclide some conflict statements in the result, like git does it.
  */
-public class Patch<T> {
+public class Patch<T>(
+    private var conflictOutput: ConflictOutput<T> = ExceptionProducingConflictOutput(),
+) {
     public var deltas: MutableList<Delta<T>> = arrayListOf()
         get() {
             field.sortBy { it.source.position }
@@ -43,7 +46,9 @@ public class Patch<T> {
         val it = deltas.listIterator(deltas.size)
         while (it.hasPrevious()) {
             val delta = it.previous()
-            delta.verifyAndApplyTo(result)
+            delta.verifyAndApplyTo(result).takeIf { it != VerifyChunk.OK }?.let {
+                conflictOutput.processConflict(it, delta, result)
+            }
         }
         return result
     }
@@ -73,6 +78,10 @@ public class Patch<T> {
 
     override fun toString(): String {
         return "Patch{deltas=$deltas}"
+    }
+
+    public fun withConflictOutput(conflictOutput: ConflictOutput<T>) {
+        this.conflictOutput = conflictOutput
     }
 
     public companion object {
