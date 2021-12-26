@@ -62,12 +62,21 @@ public sealed class Delta<T>(public val type: DeltaType) {
      * @throws PatchFailedException
      */
     @Throws(PatchFailedException::class)
-    protected open fun verifyChunk(target: List<T>) {
-        source.verify(target)
+    protected open fun verifyChunkToFitTarget(target: List<T>): VerifyChunk {
+        return source.verify(target)
     }
 
     @Throws(PatchFailedException::class)
-    public abstract fun applyTo(target: MutableList<T>)
+    public open fun verifyAndApplyTo(target: MutableList<T>): VerifyChunk {
+        val verify: VerifyChunk = verifyChunkToFitTarget(target)
+        if (verify == VerifyChunk.OK) {
+            applyTo(target)
+        }
+        return verify
+    }
+
+    @Throws(PatchFailedException::class)
+    protected abstract fun applyTo(target: MutableList<T>)
 
     public abstract fun restore(target: MutableList<T>)
 
@@ -77,8 +86,7 @@ public sealed class Delta<T>(public val type: DeltaType) {
     public abstract fun withChunks(original: Chunk<T>, revised: Chunk<T>): Delta<T>
 }
 public data class ChangeDelta<T>(override val source: Chunk<T>, override val target: Chunk<T>) : Delta<T>(DeltaType.CHANGE) {
-    override fun applyTo(target: MutableList<T>) {
-        verifyChunk(target)
+    protected override fun applyTo(target: MutableList<T>) {
         val position: Int = source.position
         val size: Int = source.size()
         for (i in 0 until size) {
@@ -104,8 +112,7 @@ public data class ChangeDelta<T>(override val source: Chunk<T>, override val tar
 }
 
 public data class DeleteDelta<T>(override val source: Chunk<T>, override val target: Chunk<T>) : Delta<T>(DeltaType.DELETE) {
-    override fun applyTo(target: MutableList<T>) {
-        verifyChunk(target)
+    protected override fun applyTo(target: MutableList<T>) {
         val position = source.position
         for (i in 0 until source.size()) {
             target.removeAt(position)
@@ -124,8 +131,7 @@ public data class DeleteDelta<T>(override val source: Chunk<T>, override val tar
 }
 
 public data class InsertDelta<T>(override val source: Chunk<T>, override val target: Chunk<T>) : Delta<T>(DeltaType.INSERT) {
-    override fun applyTo(target: MutableList<T>) {
-        verifyChunk(target)
+    protected override fun applyTo(target: MutableList<T>) {
         val position = this.source.position
         this.target.lines.forEachIndexed { i, line ->
             target.add(position + i, line)
@@ -143,7 +149,7 @@ public data class InsertDelta<T>(override val source: Chunk<T>, override val tar
 }
 
 public data class EqualDelta<T>(override val source: Chunk<T>, override val target: Chunk<T>) : Delta<T>(DeltaType.EQUAL) {
-    override fun applyTo(target: MutableList<T>): Unit = verifyChunk(target)
+    protected override fun applyTo(target: MutableList<T>): Unit = Unit
 
     override fun restore(target: MutableList<T>): Unit = Unit
 
