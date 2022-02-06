@@ -4,9 +4,9 @@ import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
 
 plugins {
-    alias(libs.plugins.kotlin.multiplatform)
+    kotlin("multiplatform")
+    id("jacoco-convention")
     alias(libs.plugins.detekt)
-    jacoco
 }
 
 configureVersioning()
@@ -65,25 +65,3 @@ dependencies {
 tasks.withType<Detekt> {
     tasks.getByName("check").dependsOn(this)
 }
-
-// configure Jacoco-based code coverage reports for JVM tests executions
-jacoco {
-    toolVersion = "0.8.7"
-}
-val jvmTestTask by tasks.named<KotlinJvmTest>("jvmTest") {
-    configure<JacocoTaskExtension> {
-        // this is needed to generate jacoco/jvmTest.exec
-        isEnabled = true
-    }
-}
-val jacocoTestReportTask by tasks.register<JacocoReport>("jacocoTestReport") {
-    executionData(jvmTestTask.extensions.getByType(JacocoTaskExtension::class.java).destinationFile)
-    additionalSourceDirs(kotlin.sourceSets["commonMain"].kotlin.sourceDirectories)
-    classDirectories.setFrom(file("$buildDir/classes/kotlin/jvm/main"))
-    reports {
-        xml.required.set(true)
-        html.required.set(true)
-    }
-}
-jvmTestTask.finalizedBy(jacocoTestReportTask)
-jacocoTestReportTask.dependsOn(jvmTestTask)
