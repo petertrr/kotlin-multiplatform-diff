@@ -32,7 +32,7 @@ jobs:
           name: gradle-test-report
           path: '**/build/reports/'
       - name: Code coverage report
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         with:
           flags: unittests
           fail_ci_if_error: true # optional (default = false)
