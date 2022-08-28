@@ -90,7 +90,7 @@ internal class MyersDiff<T>(private val equalizer: (T, T) -> Boolean = { t1, t2 
             }
             diagonal[middle + d - 1] = null
         }
-        throw IllegalStateException("could not find a diff path")
+        error("could not find a diff path")
     }
 
     /**
