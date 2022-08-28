@@ -3,8 +3,8 @@ plugins {
 }
 
 repositories {
-    gradlePluginPortal()
     mavenCentral()
+    gradlePluginPortal()
 }
 
 val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
