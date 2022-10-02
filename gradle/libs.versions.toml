@@ -1,6 +1,6 @@
 [versions]
 kotlin = "1.7.20"
-junit = "5.9.0"
+junit = "5.9.1"
 detekt = "1.21.0"
 
 [plugins]
