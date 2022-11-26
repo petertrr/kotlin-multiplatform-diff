@@ -10,6 +10,8 @@ jobs:
   build_and_test_with_code_coverage:
     name: Build, test and upload code coverage
     runs-on: ubuntu-20.04
+    env:
+      CI: true
 
     steps:
       - uses: actions/checkout@v3
@@ -20,7 +22,7 @@ jobs:
           java-version: 11
       - uses: gradle/gradle-build-action@v2
         with:
-          arguments: check build -PdetektAutoCorrect=false
+          arguments: check build -PdetektAutoCorrect=false --scan
           gradle-version: wrapper            
       - name: Upload test reports
         if: ${{ failure() }}  # runs only if previous step has failed, the entire workflow will still be marked as failed
