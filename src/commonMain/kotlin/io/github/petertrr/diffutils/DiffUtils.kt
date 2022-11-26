@@ -85,10 +85,13 @@ public fun <T> diff(
 ): Patch<T> {
     return if (equalizer != null) {
         diff(
-            source, target,
+            source,
+            target,
             MyersDiff(equalizer)
         )
-    } else diff(source, target, MyersDiff())
+    } else {
+        diff(source, target, MyersDiff())
+    }
 }
 
 public fun <T> diff(
@@ -168,7 +171,9 @@ public fun diffInline(original: String, revised: String): Patch<String> {
 private fun compressLines(lines: List<String>, delimiter: String): List<String> {
     return if (lines.isEmpty()) {
         emptyList()
-    } else listOf(lines.joinToString(delimiter))
+    } else {
+        listOf(lines.joinToString(delimiter))
+    }
 }
 
 /**

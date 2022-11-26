@@ -296,8 +296,13 @@ public class DiffRowGenerator(
             when (inlineDelta.type) {
                 DeltaType.DELETE -> {
                     wrapInTag(
-                        origList, inlineOrig.position, inlineOrig.position + inlineOrig.size(),
-                        DiffRow.Tag.DELETE, oldTag, processDiffs, replaceOriginalLinefeedInChangesWithSpaces && mergeOriginalRevised
+                        origList,
+                        inlineOrig.position,
+                        inlineOrig.position + inlineOrig.size(),
+                        DiffRow.Tag.DELETE,
+                        oldTag,
+                        processDiffs,
+                        replaceOriginalLinefeedInChangesWithSpaces && mergeOriginalRevised
                     )
                 }
                 DeltaType.INSERT -> {
@@ -310,15 +315,23 @@ public class DiffRowGenerator(
                             )
                         )
                         wrapInTag(
-                            origList, inlineOrig.position,
+                            origList,
+                            inlineOrig.position,
                             inlineOrig.position + inlineRev.size(),
-                            DiffRow.Tag.INSERT, newTag, processDiffs, false
+                            DiffRow.Tag.INSERT,
+                            newTag,
+                            processDiffs,
+                            false
                         )
                     } else {
                         wrapInTag(
-                            revList, inlineRev.position,
+                            revList,
+                            inlineRev.position,
                             inlineRev.position + inlineRev.size(),
-                            DiffRow.Tag.INSERT, newTag, processDiffs, false
+                            DiffRow.Tag.INSERT,
+                            newTag,
+                            processDiffs,
+                            false
                         )
                     }
                 }
@@ -332,21 +345,33 @@ public class DiffRowGenerator(
                             )
                         )
                         wrapInTag(
-                            origList, inlineOrig.position + inlineOrig.size(),
+                            origList,
+                            inlineOrig.position + inlineOrig.size(),
                             inlineOrig.position + inlineOrig.size() + inlineRev.size(),
-                            DiffRow.Tag.CHANGE, newTag, processDiffs, false
+                            DiffRow.Tag.CHANGE,
+                            newTag,
+                            processDiffs,
+                            false
                         )
                     } else {
                         wrapInTag(
-                            revList, inlineRev.position,
+                            revList,
+                            inlineRev.position,
                             inlineRev.position + inlineRev.size(),
-                            DiffRow.Tag.CHANGE, newTag, processDiffs, false
+                            DiffRow.Tag.CHANGE,
+                            newTag,
+                            processDiffs,
+                            false
                         )
                     }
                     wrapInTag(
-                        origList, inlineOrig.position,
+                        origList,
+                        inlineOrig.position,
                         inlineOrig.position + inlineOrig.size(),
-                        DiffRow.Tag.CHANGE, oldTag, processDiffs, replaceOriginalLinefeedInChangesWithSpaces && mergeOriginalRevised
+                        DiffRow.Tag.CHANGE,
+                        oldTag,
+                        processDiffs,
+                        replaceOriginalLinefeedInChangesWithSpaces && mergeOriginalRevised
                     )
                 }
                 else -> error("Unexpected delta type ${inlineDelta.type}")
