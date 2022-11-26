@@ -1,15 +1,15 @@
-plugins {
-    id("com.gradle.enterprise") version("3.11.4")
-}
-
-rootProject.name = "kotlin-multiplatform-diff"
-
 pluginManagement {
     repositories {
         mavenCentral()
         gradlePluginPortal()
     }
 }
+
+plugins {
+    id("com.gradle.enterprise") version("3.11.4")
+}
+
+rootProject.name = "kotlin-multiplatform-diff"
 
 dependencyResolutionManagement {
     repositories {
