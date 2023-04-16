@@ -18,7 +18,7 @@ kotlin {
 
 // configure Jacoco-based code coverage reports for JVM tests executions
 jacoco {
-    toolVersion = "0.8.8"
+    toolVersion = "0.8.9"
 }
 val jvmTestTask by tasks.named<Test>("jvmTest") {
     configure<JacocoTaskExtension> {
