@@ -21,5 +21,5 @@ package io.github.petertrr.diffutils.patch
 public enum class VerifyChunk {
     OK,
     POSITION_OUT_OF_TARGET,
-    CONTENT_DOES_NOT_MATCH_TARGET,
+    CONTENT_DOES_NOT_MATCH_TARGET,;
 }
