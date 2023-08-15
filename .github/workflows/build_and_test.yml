@@ -40,8 +40,10 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: run detekt
         with:
-          arguments: detekt -detekt.multiplatform.disabled=false
+          arguments: detekt -Pdetekt.multiplatform.disabled=false
           gradle-version: wrapper
       - uses: reviewdog/action-suggester@v1
+        # Fixme: run if only the previous step has failed
+        if: ${{ failure() }}
         with:
           tool_name: detekt
