@@ -43,6 +43,7 @@ jobs:
           arguments: check -Pdetekt.multiplatform.disabled=false -PdetektAutoCorrect=true
           gradle-version: wrapper
       - run: git status && git diff
+        if: ${{ always() }}
       - uses: reviewdog/action-suggester@v1
         # Fixme: run if only the previous step has failed
         if: ${{ failure() }}
