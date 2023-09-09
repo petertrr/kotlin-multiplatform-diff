@@ -24,6 +24,7 @@ jobs:
         with:
           arguments: check build -PdetektAutoCorrect=false --scan
           gradle-version: wrapper            
+          dependency-graph: generate-and-submit
       - name: Upload test reports
         if: ${{ failure() }}  # runs only if previous step has failed, the entire workflow will still be marked as failed
         uses: actions/upload-artifact@v3
