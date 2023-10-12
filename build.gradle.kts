@@ -1,5 +1,4 @@
 import io.github.petertrr.configurePublishing
-import io.github.petertrr.configureVersioning
 import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
 
@@ -9,7 +8,6 @@ plugins {
     alias(libs.plugins.detekt)
 }
 
-configureVersioning()
 group = "io.github.petertrr"
 description = "A multiplatform Kotlin library for calculating text differences"
 
