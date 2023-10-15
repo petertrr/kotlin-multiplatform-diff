@@ -6,7 +6,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise") version("3.13.4")
+    id("com.gradle.enterprise") version("3.15.1")
     id("org.ajoberstar.reckon.settings") version("0.18.0")
 }
 
