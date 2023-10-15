@@ -7,3 +7,5 @@ formatting:
   active: true
   MaximumLineLength:
     active: false
+  ParameterListWrapping:
+    active: false
