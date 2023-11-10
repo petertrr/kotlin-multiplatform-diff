@@ -35,7 +35,7 @@ public class ConflictProducingConflictOutput : ConflictOutput<String> {
     override fun processConflict(verifyChunk: VerifyChunk, delta: Delta<String>, result: MutableList<String>) {
         if (result.size > delta.source.position) {
             val orgData = mutableListOf<String>()
-            (0 until delta.source.size()).forEach { _ ->
+            repeat(delta.source.size()) { _ ->
                 orgData.add(
                     result.removeAt(delta.source.position)
                 )

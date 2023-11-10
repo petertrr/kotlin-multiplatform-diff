@@ -21,9 +21,10 @@ jobs:
           distribution: temurin
           java-version: 11
       - uses: gradle/gradle-build-action@v2
+        name: build and test
         with:
-          arguments: check build -PdetektAutoCorrect=false --scan
-          gradle-version: wrapper            
+          arguments: check build -x detekt -Pdetekt.multiplatform.disabled=true --scan
+          gradle-version: wrapper
           dependency-graph: generate-and-submit
       - name: Upload test reports
         if: ${{ failure() }}  # runs only if previous step has failed, the entire workflow will still be marked as failed
@@ -36,3 +37,16 @@ jobs:
         with:
           flags: unittests
           fail_ci_if_error: true # optional (default = false)
+          
+      - uses: gradle/gradle-build-action@v2
+        name: run detekt
+        with:
+          arguments: check -Pdetekt.multiplatform.disabled=false -PdetektAutoCorrect=true
+          gradle-version: wrapper
+      - run: git status && git diff
+        if: ${{ always() }}
+      - uses: reviewdog/action-suggester@v1
+        # Fixme: run if only the previous step has failed
+        if: ${{ failure() }}
+        with:
+          tool_name: detekt

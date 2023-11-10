@@ -18,7 +18,7 @@ kotlin {
 
 // configure Jacoco-based code coverage reports for JVM tests executions
 jacoco {
-    toolVersion = "0.8.10"
+    toolVersion = "0.8.11"
 }
 val jvmTestTask by tasks.named<Test>("jvmTest") {
     configure<JacocoTaskExtension> {
@@ -29,7 +29,7 @@ val jvmTestTask by tasks.named<Test>("jvmTest") {
 val jacocoTestReportTask by tasks.register<JacocoReport>("jacocoTestReport") {
     executionData(jvmTestTask.extensions.getByType(JacocoTaskExtension::class.java).destinationFile)
     additionalSourceDirs(kotlin.sourceSets["commonMain"].kotlin.sourceDirectories)
-    classDirectories.setFrom(file("$buildDir/classes/kotlin/jvm/main"))
+    classDirectories.setFrom(layout.buildDirectory.file("classes/kotlin/jvm/main"))
     reports {
         xml.required.set(true)
         html.required.set(true)

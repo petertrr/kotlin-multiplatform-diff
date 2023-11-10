@@ -54,7 +54,7 @@ tasks.withType<KotlinJvmTest> {
 
 detekt {
     buildUponDefaultConfig = true
-    config = files("detekt.yml")
+    config.setFrom(files("detekt.yml"))
     autoCorrect = (findProperty("detektAutoCorrect") as String?)?.toBoolean() ?: true
 }
 dependencies {
