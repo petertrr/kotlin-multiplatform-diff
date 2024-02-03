@@ -6,6 +6,9 @@ on:
     branches:
       - 'main'
 
+permissions:
+  contents: write # https://github.com/gradle/actions/blob/main/setup-gradle/README.md#basic-usage
+
 jobs:
   build_and_test_with_code_coverage:
     name: Build, test and upload code coverage
