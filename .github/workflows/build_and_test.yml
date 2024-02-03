@@ -26,7 +26,7 @@ jobs:
           gradle-version: wrapper
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
       - name: build and test
-        run: ./gradlew check build -x detekt -Pdetekt.multiplatform.disabled=true --scan --configuration-cache
+        run: ./gradlew check build -x detekt -Pdetekt.multiplatform.disabled=true --scan
       - name: Upload test reports
         if: ${{ failure() }}  # runs only if previous step has failed, the entire workflow will still be marked as failed
         uses: actions/upload-artifact@v4
@@ -43,11 +43,8 @@ jobs:
         with:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
           
-      - uses: gradle/gradle-build-action@v2
-        name: run detekt
-        with:
-          arguments: check -Pdetekt.multiplatform.disabled=false -PdetektAutoCorrect=true
-          gradle-version: wrapper
+      - name: run detekt
+        run: ./gradlew check -Pdetekt.multiplatform.disabled=false -PdetektAutoCorrect=true
       - run: git status && git diff
         if: ${{ always() }}
       - uses: reviewdog/action-suggester@v1
