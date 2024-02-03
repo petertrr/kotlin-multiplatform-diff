@@ -6,6 +6,9 @@ on:
     branches:
       - 'main'
 
+permissions:
+  contents: write # https://github.com/gradle/actions/blob/main/setup-gradle/README.md#basic-usage
+
 jobs:
   build_and_test_with_code_coverage:
     name: Build, test and upload code coverage
@@ -20,12 +23,14 @@ jobs:
         with:
           distribution: temurin
           java-version: 11
-      - uses: gradle/gradle-build-action@v2
-        name: build and test
+      - uses: gradle/actions/setup-gradle@v3
+        name: Setup Gradle
         with:
-          arguments: check build -x detekt -Pdetekt.multiplatform.disabled=true --scan
           gradle-version: wrapper
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
           dependency-graph: generate-and-submit
+      - name: build and test
+        run: ./gradlew check build -x detekt -Pdetekt.multiplatform.disabled=true --scan
       - name: Upload test reports
         if: ${{ failure() }}  # runs only if previous step has failed, the entire workflow will still be marked as failed
         uses: actions/upload-artifact@v4
@@ -38,11 +43,8 @@ jobs:
           flags: unittests
           fail_ci_if_error: true # optional (default = false)
           
-      - uses: gradle/gradle-build-action@v2
-        name: run detekt
-        with:
-          arguments: check -Pdetekt.multiplatform.disabled=false -PdetektAutoCorrect=true
-          gradle-version: wrapper
+      - name: run detekt
+        run: ./gradlew check -Pdetekt.multiplatform.disabled=false -PdetektAutoCorrect=true
       - run: git status && git diff
         if: ${{ always() }}
       - uses: reviewdog/action-suggester@v1
