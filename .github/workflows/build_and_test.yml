@@ -25,6 +25,7 @@ jobs:
         with:
           gradle-version: wrapper
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+          dependency-graph: generate-and-submit
       - name: build and test
         run: ./gradlew check build -x detekt -Pdetekt.multiplatform.disabled=true --scan
       - name: Upload test reports
@@ -38,10 +39,6 @@ jobs:
         with:
           flags: unittests
           fail_ci_if_error: true # optional (default = false)
-      - name: Generate and submit dependency graph
-        uses: gradle/actions/dependency-submission@v3
-        with:
-          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
           
       - name: run detekt
         run: ./gradlew check -Pdetekt.multiplatform.disabled=false -PdetektAutoCorrect=true
