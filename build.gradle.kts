@@ -36,6 +36,7 @@ kotlin {
             dependencies {
                 implementation(kotlin("test-junit5"))
                 implementation(libs.junit.jupiter.engine)
+                runtimeOnly("org.junit.platform:junit-platform-launcher")
             }
         }
         val jsTest by getting {
