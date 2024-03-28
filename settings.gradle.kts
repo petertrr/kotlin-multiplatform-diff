@@ -13,6 +13,7 @@ plugins {
 rootProject.name = "kotlin-multiplatform-diff"
 
 dependencyResolutionManagement {
+    @Suppress("UnstableApiUsage")
     repositories {
         mavenCentral()
     }

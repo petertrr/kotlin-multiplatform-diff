@@ -1,47 +1,64 @@
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
+
 import io.github.petertrr.configurePublishing
+import io.github.petertrr.ext.booleanProperty
 import io.gitlab.arturbosch.detekt.Detekt
-import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 plugins {
     kotlin("multiplatform")
-    id("jacoco-convention")
     alias(libs.plugins.detekt)
+    id("jacoco-convention")
 }
 
 group = "io.github.petertrr"
 description = "A multiplatform Kotlin library for calculating text differences"
 
+dependencies {
+    detektPlugins(libs.detekt.formatting)
+}
+
 kotlin {
     explicitApi()
 
-    jvm()
-    js(IR) {
+    compilerOptions {
+        apiVersion = KotlinVersion.KOTLIN_1_9
+        languageVersion = KotlinVersion.KOTLIN_1_9
+    }
+
+    jvm {
+        compilations.configureEach {
+            compilerOptions.configure {
+                // Minimum bytecode level is 52
+                jvmTarget = JvmTarget.JVM_1_8
+
+                // Output interfaces with default methods
+                freeCompilerArgs.add("-Xjvm-default=all")
+            }
+        }
+
+        testRuns.configureEach {
+            executionTask.configure {
+                useJUnitPlatform()
+            }
+        }
+    }
+
+    js {
         browser()
         nodejs()
     }
-    // setup native compilation
+
     linuxX64()
     mingwX64()
     macosX64()
 
     sourceSets {
-        val commonTest by getting {
+        commonTest {
             dependencies {
-                implementation(kotlin("test-common"))
-                implementation(kotlin("test-annotations-common"))
-            }
-        }
-        // platform-specific dependencies are needed to use actual test runners
-        val jvmTest by getting {
-            dependencies {
-                implementation(kotlin("test-junit5"))
-                implementation(libs.junit.jupiter.engine)
-                runtimeOnly("org.junit.platform:junit-platform-launcher")
-            }
-        }
-        val jsTest by getting {
-            dependencies {
-                implementation(kotlin("test-js"))
+                implementation(kotlin("test"))
             }
         }
     }
@@ -49,18 +66,16 @@ kotlin {
 
 configurePublishing()
 
-tasks.withType<KotlinJvmTest> {
-    useJUnitPlatform()
-}
-
 detekt {
     buildUponDefaultConfig = true
     config.setFrom(files("detekt.yml"))
-    autoCorrect = (findProperty("detektAutoCorrect") as String?)?.toBoolean() ?: true
+    autoCorrect = booleanProperty("detektAutoCorrect", default = true)
 }
-dependencies {
-    detektPlugins(libs.detekt.formatting)
-}
-tasks.withType<Detekt> {
-    tasks.getByName("check").dependsOn(this)
+
+tasks {
+    withType<Detekt> {
+        named("check") {
+            dependsOn(this@withType)
+        }
+    }
 }
