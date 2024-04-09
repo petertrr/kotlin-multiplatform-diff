@@ -38,7 +38,9 @@ jobs:
           name: gradle-test-report
           path: '**/build/reports/'
       - name: Code coverage report
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
           flags: unittests
           fail_ci_if_error: true # optional (default = false)
