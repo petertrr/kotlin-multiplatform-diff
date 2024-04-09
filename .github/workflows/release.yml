@@ -22,10 +22,11 @@ jobs:
         with:
           distribution: temurin
           java-version: 11
-      - uses: gradle/gradle-build-action@v2
+      - uses: gradle/actions/setup-gradle@v3
         with:
-          arguments: publishToSonatype closeSonatypeStagingRepository
           gradle-version: wrapper
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+      - run: ./gradlew publishToSonatype closeSonatypeStagingRepository
       - name: Create Github Release
         id: create_release
         uses: actions/create-release@v1
@@ -47,10 +48,11 @@ jobs:
         with:
           distribution: zulu
           java-version: 11
-      - uses: gradle/gradle-build-action@v2
+      - uses: gradle/actions/setup-gradle@v3
         with:
-          arguments: publishToSonatype closeSonatypeStagingRepository
           gradle-version: wrapper
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+      - run: ./gradlew publishToSonatype closeSonatypeStagingRepository
   release_windows:
     name: Build release on Windows
     runs-on: windows-latest
@@ -62,7 +64,8 @@ jobs:
         with:
           distribution: zulu
           java-version: 11
-      - uses: gradle/gradle-build-action@v2
+      - uses: gradle/actions/setup-gradle@v3
         with:
-          arguments: publishToSonatype closeSonatypeStagingRepository
           gradle-version: wrapper
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+      - run: ./gradlew publishToSonatype closeSonatypeStagingRepository
