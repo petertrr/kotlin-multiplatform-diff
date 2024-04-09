@@ -23,111 +23,128 @@ import io.github.petertrr.diffutils.algorithm.Change
 /**
  * Describes the patch holding all deltas between the original and revised texts.
  *
+ * @param conflictOutput Alter normal conflict output behaviour to e.g. include
+ *   some conflict statements in the result, like Git does it.
  * @param T The type of the compared elements in the 'lines'.
- * @property conflictOutput Alter normal conflict output behaviour to e.g. inclide some conflict statements in the result, like git does it.
  */
-public class Patch<T>(
-    private var conflictOutput: ConflictOutput<T> = ExceptionProducingConflictOutput(),
-) {
-    public var deltas: MutableList<Delta<T>> = arrayListOf()
+public class Patch<T>(private var conflictOutput: ConflictOutput<T> = ExceptionProducingConflictOutput()) {
+    public var deltas: MutableList<Delta<T>> = ArrayList()
         get() {
             field.sortBy { it.source.position }
             return field
         }
 
     /**
-     * Apply this patch to the given target
+     * Apply this patch to the given target.
      *
-     * @return the patched text
+     * @return The patched text
      */
     @Throws(PatchFailedException::class)
     public fun applyTo(target: List<T>): List<T> {
         val result = target.toMutableList()
         val it = deltas.listIterator(deltas.size)
+
         while (it.hasPrevious()) {
             val delta = it.previous()
-            delta.verifyAndApplyTo(result).takeIf { it != VerifyChunk.OK }?.let {
-                conflictOutput.processConflict(it, delta, result)
+            val verifyChunk = delta.verifyAndApplyTo(result)
+
+            if (verifyChunk != VerifyChunk.OK) {
+                conflictOutput.processConflict(verifyChunk, delta, result)
             }
         }
+
         return result
     }
 
     /**
-     * Restore the text to original. Opposite to applyTo() method.
+     * Restore the text to its original form. Opposite of the [applyTo] method.
      *
-     * @param target the given target
-     * @return the restored text
+     * @param target The given target
+     * @return The restored text
      */
     public fun restore(target: List<T>): List<T> {
         val result = target.toMutableList()
         val it = deltas.listIterator(deltas.size)
+
         while (it.hasPrevious()) {
             val delta = it.previous()
             delta.restore(result)
         }
+
         return result
     }
 
     /**
-     * Add the given delta to this patch
+     * Add the given delta to this patch.
      *
-     * @param delta the given delta
+     * @param delta The delta to add
      */
-    public fun addDelta(delta: Delta<T>): Boolean = deltas.add(delta)
+    public fun addDelta(delta: Delta<T>): Boolean =
+        deltas.add(delta)
 
-    override fun toString(): String {
-        return "Patch{deltas=$deltas}"
-    }
+    override fun toString(): String =
+        "Patch{deltas=$deltas}"
 
     public fun withConflictOutput(conflictOutput: ConflictOutput<T>) {
         this.conflictOutput = conflictOutput
     }
 
     public companion object {
-        public fun <T> generate(original: List<T>, revised: List<T>, changes: List<Change>): Patch<T> {
-            return generate(original, revised, changes, false)
-        }
+        public fun <T> generate(original: List<T>, revised: List<T>, changes: List<Change>): Patch<T> =
+            generate(original, revised, changes, false)
 
-        private fun <T> buildChunk(start: Int, end: Int, data: List<T>): Chunk<T> {
-            return Chunk(start, data.subList(start, end))
-        }
+        private fun <T> buildChunk(start: Int, end: Int, data: List<T>): Chunk<T> =
+            Chunk(start, data.subList(start, end))
 
-        public fun <T> generate(original: List<T>, revised: List<T>, changes: List<Change>, includeEquals: Boolean): Patch<T> {
+        public fun <T> generate(
+            original: List<T>,
+            revised: List<T>,
+            changes: List<Change>,
+            includeEquals: Boolean,
+        ): Patch<T> {
             val patch = Patch<T>()
             var startOriginal = 0
             var startRevised = 0
-            changes.run {
-                if (includeEquals) sortedBy { it.startOriginal } else this
-            }.forEach { change ->
+
+            val adjustedChanges = if (includeEquals) {
+                changes.sortedBy { it.startOriginal }
+            } else {
+                changes
+            }
+
+            for (change in adjustedChanges) {
                 if (includeEquals && startOriginal < change.startOriginal) {
                     patch.addDelta(
                         EqualDelta(
                             buildChunk(startOriginal, change.startOriginal, original),
-                            buildChunk(startRevised, change.startRevised, revised)
+                            buildChunk(startRevised, change.startRevised, revised),
                         )
                     )
                 }
+
                 val orgChunk = buildChunk(change.startOriginal, change.endOriginal, original)
                 val revChunk = buildChunk(change.startRevised, change.endRevised, revised)
+
                 when (change.deltaType) {
                     DeltaType.DELETE -> patch.addDelta(DeleteDelta(orgChunk, revChunk))
                     DeltaType.INSERT -> patch.addDelta(InsertDelta(orgChunk, revChunk))
                     DeltaType.CHANGE -> patch.addDelta(ChangeDelta(orgChunk, revChunk))
-                    else -> {
-                    }
+                    DeltaType.EQUAL -> {}
                 }
+
                 startOriginal = change.endOriginal
                 startRevised = change.endRevised
             }
+
             if (includeEquals && startOriginal < original.size) {
                 patch.addDelta(
                     EqualDelta(
                         buildChunk(startOriginal, original.size, original),
-                        buildChunk(startRevised, revised.size, revised)
+                        buildChunk(startRevised, revised.size, revised),
                     )
                 )
             }
+
             return patch
         }
     }
