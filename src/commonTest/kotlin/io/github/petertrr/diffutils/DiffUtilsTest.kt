@@ -18,16 +18,10 @@
  */
 package io.github.petertrr.diffutils
 
-import io.github.petertrr.diffutils.patch.ChangeDelta
-import io.github.petertrr.diffutils.patch.Chunk
-import io.github.petertrr.diffutils.patch.DeleteDelta
-import io.github.petertrr.diffutils.patch.EqualDelta
-import io.github.petertrr.diffutils.patch.InsertDelta
-import io.github.petertrr.diffutils.patch.Patch
+import io.github.petertrr.diffutils.patch.*
 import io.github.petertrr.diffutils.utils.changeDeltaOf
 import io.github.petertrr.diffutils.utils.deleteDeltaOf
 import io.github.petertrr.diffutils.utils.insertDeltaOf
-
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -128,7 +122,7 @@ class DiffUtilsTest {
         val patch: Patch<String> = diff(original, revised)
         assertEquals(1, patch.deltas.size)
         assertEquals(
-            changeDeltaOf(1, listOf("line2", "line3"),1, listOf("line2-2", "line4")),
+            changeDeltaOf(1, listOf("line2", "line3"), 1, listOf("line2-2", "line4")),
             patch.deltas[0]
         )
     }
@@ -148,8 +142,9 @@ class DiffUtilsTest {
     @Test
     fun testDiff_Equal() {
         val patch: Patch<String> = diff(
-            listOf("hhh", "jjj", "kkk"),
-            listOf("hhh", "jjj", "kkk"), true
+            source = listOf("hhh", "jjj", "kkk"),
+            target = listOf("hhh", "jjj", "kkk"),
+            includeEqualParts = true,
         )
         assertNotNull(patch)
         assertEquals(1, patch.deltas.size)
@@ -161,7 +156,11 @@ class DiffUtilsTest {
 
     @Test
     fun testDiff_InsertWithEqual() {
-        val patch: Patch<String> = diff(listOf("hhh"), listOf("hhh", "jjj", "kkk"), true)
+        val patch: Patch<String> = diff(
+            source = listOf("hhh"),
+            target = listOf("hhh", "jjj", "kkk"),
+            includeEqualParts = true,
+        )
         assertNotNull(patch)
         assertEquals(2, patch.deltas.size)
         var delta = patch.deltas[0]
@@ -177,8 +176,9 @@ class DiffUtilsTest {
     @Test
     fun testDiff_ProblemIssue42() {
         val patch: Patch<String> = diff(
-            listOf("The", "dog", "is", "brown"),
-            listOf("The", "fox", "is", "down"), true
+            source = listOf("The", "dog", "is", "brown"),
+            target = listOf("The", "fox", "is", "down"),
+            includeEqualParts = true,
         )
         println(patch)
         assertNotNull(patch)

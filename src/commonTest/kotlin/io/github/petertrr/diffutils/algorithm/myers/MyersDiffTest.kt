@@ -31,7 +31,7 @@ class MyersDiffTest {
     fun testDiffMyersExample1Forward() {
         val original: List<String> = listOf("A", "B", "C", "A", "B", "B", "A")
         val revised: List<String> = listOf("C", "B", "A", "B", "A", "C")
-        val patch: Patch<String> = Patch.generate(original, revised, MyersDiff<String>().computeDiff(original, revised, null))
+        val patch: Patch<String> = Patch.generate(original, revised, MyersDiff<String>().computeDiff(original, revised))
         assertNotNull(patch)
         assertEquals(4, patch.deltas.size)
         assertEquals(
