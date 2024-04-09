@@ -19,17 +19,21 @@
 package io.github.petertrr.diffutils.algorithm
 
 public interface DiffAlgorithmListener {
+    /**
+     * Notifies computing a diff has started.
+     */
     public fun diffStart()
 
     /**
-     * This is a step within the diff algorithm. Due to different implementations the value
-     * is not strict incrementing to the max and is not guarantee to reach the max. It could
-     * stop before.
+     * Notifies of a step within the diff algorithm.
      *
-     * @param value
-     * @param max
+     * Due to different implementations the value is not strict incrementing
+     * to the max and is not guarantee to reach the max. It could stop before.
      */
     public fun diffStep(value: Int, max: Int)
 
+    /**
+     * Notifies computing a diff has ended.
+     */
     public fun diffEnd()
 }
