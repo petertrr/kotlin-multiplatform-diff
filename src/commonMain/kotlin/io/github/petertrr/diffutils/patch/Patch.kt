@@ -38,8 +38,8 @@ public class Patch<T>(private var conflictOutput: ConflictOutput<T> = ExceptionP
      * Apply this patch to the given target.
      *
      * @return The patched text
+     * @throws PatchFailedException If the patch cannot be applied
      */
-    @Throws(PatchFailedException::class)
     public fun applyTo(target: List<T>): List<T> {
         val result = target.toMutableList()
         val it = deltas.listIterator(deltas.size)

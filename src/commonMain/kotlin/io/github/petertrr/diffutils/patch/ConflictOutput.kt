@@ -19,6 +19,5 @@
 package io.github.petertrr.diffutils.patch
 
 public fun interface ConflictOutput<T> {
-    @Throws(PatchFailedException::class)
     public fun processConflict(verifyChunk: VerifyChunk, delta: Delta<T>, result: MutableList<T>)
 }

@@ -148,7 +148,6 @@ public fun diffInline(original: String, revised: String): Patch<String> {
  * @return The revised text
  * @throws PatchFailedException If the patch cannot be applied
  */
-@Throws(PatchFailedException::class)
 public fun <T> patch(original: List<T>, patch: Patch<T>): List<T> =
     patch.applyTo(original)
 

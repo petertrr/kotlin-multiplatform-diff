@@ -28,12 +28,9 @@ public sealed class Delta<T>(public val type: DeltaType) {
     /**
      * Verify the chunk of this delta, to fit the target.
      */
-    @Throws(PatchFailedException::class)
-    protected open fun verifyChunkToFitTarget(target: List<T>): VerifyChunk {
-        return source.verify(target)
-    }
+    protected open fun verifyChunkToFitTarget(target: List<T>): VerifyChunk =
+        source.verify(target)
 
-    @Throws(PatchFailedException::class)
     public open fun verifyAndApplyTo(target: MutableList<T>): VerifyChunk {
         val verify = verifyChunkToFitTarget(target)
 
@@ -44,7 +41,6 @@ public sealed class Delta<T>(public val type: DeltaType) {
         return verify
     }
 
-    @Throws(PatchFailedException::class)
     protected abstract fun applyTo(target: MutableList<T>)
 
     public abstract fun restore(target: MutableList<T>)
