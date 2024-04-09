@@ -18,4 +18,4 @@
  */
 package io.github.petertrr.diffutils.patch
 
-public class PatchFailedException(message: String) : DiffException(message)
+public abstract class DiffException(message: String) : Exception(message)
