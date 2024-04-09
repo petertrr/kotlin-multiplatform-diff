@@ -1,6 +1,5 @@
 /*
- * Copyright 2021 Peter Trifanov.
- * Copyright 2018 java-diff-utils.
+ * Copyright 2024 Peter Trifanov.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,17 +18,18 @@
 package io.github.petertrr.diffutils.algorithm
 
 /**
- * Describes a diff algorithm.
- *
- * @param T The type of data that should be diffed
+ * A diff algorithm progress listener that does nothing.
  */
-public interface DiffAlgorithm<T> {
-    /**
-     * Computes the changeset to patch the [source] list to the [target] list.
-     */
-    public fun computeDiff(
-        source: List<T>,
-        target: List<T>,
-        progress: DiffAlgorithmListener = NoopAlgorithmListener(),
-    ): List<Change>
+public class NoopAlgorithmListener : DiffAlgorithmListener {
+    override fun diffStart() {
+        // Noop
+    }
+
+    override fun diffStep(value: Int, max: Int) {
+        // Noop
+    }
+
+    override fun diffEnd() {
+        // Noop
+    }
 }

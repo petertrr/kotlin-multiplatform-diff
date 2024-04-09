@@ -30,12 +30,12 @@ public class MyersDiff<T>(private val equalizer: (T, T) -> Boolean = { t1, t2 ->
     /**
      * Returns an empty diff if we get an error while procession the difference.
      */
-    override fun computeDiff(source: List<T>, target: List<T>, progress: DiffAlgorithmListener?): List<Change> {
-        progress?.diffStart()
+    override fun computeDiff(source: List<T>, target: List<T>, progress: DiffAlgorithmListener): List<Change> {
+        progress.diffStart()
 
         val path = buildPath(source, target, progress) ?: error("Expected a non-null path node")
         val result = buildRevision(path)
-        progress?.diffEnd()
+        progress.diffEnd()
 
         return result
     }
@@ -49,7 +49,7 @@ public class MyersDiff<T>(private val equalizer: (T, T) -> Boolean = { t1, t2 ->
      * @return A minimum [PathNode] across the differences graph
      * @throws IllegalStateException If a diff path could not be found
      */
-    private fun buildPath(orig: List<T>, rev: List<T>, progress: DiffAlgorithmListener?): PathNode? {
+    private fun buildPath(orig: List<T>, rev: List<T>, progress: DiffAlgorithmListener): PathNode? {
         // These are local constants
         val origSize = orig.size
         val revSize = rev.size
@@ -60,7 +60,7 @@ public class MyersDiff<T>(private val equalizer: (T, T) -> Boolean = { t1, t2 ->
         diagonal[middle + 1] = PathNode(0, -1, snake = true, bootstrap = true, prev = null)
 
         for (d in 0..<max) {
-            progress?.diffStep(d, max)
+            progress.diffStep(d, max)
             var k = -d
 
             while (k <= d) {

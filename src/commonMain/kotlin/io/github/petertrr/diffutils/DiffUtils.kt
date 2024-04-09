@@ -22,6 +22,7 @@ package io.github.petertrr.diffutils
 
 import io.github.petertrr.diffutils.algorithm.DiffAlgorithm
 import io.github.petertrr.diffutils.algorithm.DiffAlgorithmListener
+import io.github.petertrr.diffutils.algorithm.NoopAlgorithmListener
 import io.github.petertrr.diffutils.algorithm.myers.MyersDiff
 import io.github.petertrr.diffutils.patch.Patch
 import io.github.petertrr.diffutils.patch.PatchFailedException
@@ -49,7 +50,7 @@ public fun diff(
     sourceText: String,
     targetText: String,
     algorithm: DiffAlgorithm<String> = MyersDiff(),
-    progress: DiffAlgorithmListener? = null,
+    progress: DiffAlgorithmListener = NoopAlgorithmListener(),
     includeEqualParts: Boolean = false,
 ): Patch<String> =
     diff(
@@ -97,7 +98,7 @@ public fun <T> diff(
     source: List<T>,
     target: List<T>,
     algorithm: DiffAlgorithm<T> = MyersDiff(),
-    progress: DiffAlgorithmListener? = null,
+    progress: DiffAlgorithmListener = NoopAlgorithmListener(),
     includeEqualParts: Boolean = false,
 ): Patch<T> =
     Patch.generate(
