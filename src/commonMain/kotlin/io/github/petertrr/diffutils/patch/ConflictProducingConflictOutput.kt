@@ -18,7 +18,22 @@
  */
 package io.github.petertrr.diffutils.patch
 
-public fun interface ConflictOutput<T> {
-    @Throws(PatchFailedException::class)
-    public fun processConflict(verifyChunk: VerifyChunk, delta: Delta<T>, result: MutableList<T>)
+public class ConflictProducingConflictOutput : ConflictOutput<String> {
+    override fun processConflict(verifyChunk: VerifyChunk, delta: Delta<String>, result: MutableList<String>) {
+        if (result.size <= delta.source.position) {
+            throw UnsupportedOperationException("Not supported yet")
+        }
+
+        val orgData = ArrayList<String>()
+
+        repeat(delta.source.size()) {
+            orgData.add(result.removeAt(delta.source.position))
+        }
+
+        orgData.add(0, "<<<<<< HEAD")
+        orgData.add("======")
+        orgData.addAll(delta.source.lines)
+        orgData.add(">>>>>>> PATCH")
+        result.addAll(delta.source.position, orgData)
+    }
 }

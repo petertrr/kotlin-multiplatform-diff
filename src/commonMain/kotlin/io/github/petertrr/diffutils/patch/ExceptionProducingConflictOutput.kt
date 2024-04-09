@@ -18,7 +18,7 @@
  */
 package io.github.petertrr.diffutils.patch
 
-public fun interface ConflictOutput<T> {
-    @Throws(PatchFailedException::class)
-    public fun processConflict(verifyChunk: VerifyChunk, delta: Delta<T>, result: MutableList<T>)
+public class ExceptionProducingConflictOutput<T> : ConflictOutput<T> {
+    override fun processConflict(verifyChunk: VerifyChunk, delta: Delta<T>, result: MutableList<T>): Nothing =
+        throw PatchFailedException("Could not apply patch due to $verifyChunk")
 }
