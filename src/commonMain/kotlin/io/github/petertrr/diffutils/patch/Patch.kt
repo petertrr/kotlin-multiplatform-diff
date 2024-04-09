@@ -47,10 +47,7 @@ public class Patch<T>(private var conflictOutput: ConflictOutput<T> = ExceptionP
         while (it.hasPrevious()) {
             val delta = it.previous()
             val verifyChunk = delta.verifyAndApplyTo(result)
-
-            if (verifyChunk != VerifyChunk.OK) {
-                conflictOutput.processConflict(verifyChunk, delta, result)
-            }
+            conflictOutput.processConflict(verifyChunk, delta, result)
         }
 
         return result

@@ -24,16 +24,19 @@ public class ConflictProducingConflictOutput : ConflictOutput<String> {
             throw UnsupportedOperationException("Not supported yet")
         }
 
-        val orgData = ArrayList<String>()
+        if (verifyChunk != VerifyChunk.OK) {
+            val orgData = ArrayList<String>()
 
-        repeat(delta.source.size()) {
-            orgData.add(result.removeAt(delta.source.position))
+            repeat(delta.source.size()) {
+                orgData.add(result.removeAt(delta.source.position))
+            }
+
+            orgData.add(0, "<<<<<< HEAD")
+            orgData.add("======")
+            orgData.addAll(delta.source.lines)
+            orgData.add(">>>>>>> PATCH")
+
+            result.addAll(delta.source.position, orgData)
         }
-
-        orgData.add(0, "<<<<<< HEAD")
-        orgData.add("======")
-        orgData.addAll(delta.source.lines)
-        orgData.add(">>>>>>> PATCH")
-        result.addAll(delta.source.position, orgData)
     }
 }
