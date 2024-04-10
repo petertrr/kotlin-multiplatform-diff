@@ -11,3 +11,5 @@ formatting:
     active: false
   ParameterListWrapping:
     active: false
+  TrailingCommaOnDeclarationSite:
+    active: true
