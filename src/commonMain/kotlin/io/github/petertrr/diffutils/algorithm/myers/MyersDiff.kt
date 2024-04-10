@@ -122,13 +122,19 @@ public class MyersDiff<T>(private val equalizer: (T, T) -> Boolean = { t1, t2 ->
 
         val changes = ArrayList<Change>()
 
-        // TODO: this can be improved to avoid the non-null assertion on prev
-        while (path?.prev != null && path.prev!!.j >= 0) {
+        while (path != null) {
+            val prevPath = path.prev
+
+            if (prevPath == null || prevPath.j < 0) {
+                break
+            }
+
             check(!path.snake) { "Bad diffpath: found snake when looking for diff" }
 
             val i = path.i
             val j = path.j
-            path = path.prev ?: error("Expected a non-null previous path node")
+
+            path = prevPath
 
             val iAnchor = path.i
             val jAnchor = path.j
