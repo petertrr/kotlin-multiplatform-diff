@@ -16,187 +16,154 @@
  *
  * This file has been modified by Peter Trifanov when porting from Java to Kotlin.
  */
-/**
- * Implements the difference and patching engine
- */
-
-@file:Suppress("TooManyFunctions")
+@file:JvmName("DiffUtils")
 
 package io.github.petertrr.diffutils
 
 import io.github.petertrr.diffutils.algorithm.DiffAlgorithm
 import io.github.petertrr.diffutils.algorithm.DiffAlgorithmListener
+import io.github.petertrr.diffutils.algorithm.NoopAlgorithmListener
 import io.github.petertrr.diffutils.algorithm.myers.MyersDiff
 import io.github.petertrr.diffutils.patch.Patch
 import io.github.petertrr.diffutils.patch.PatchFailedException
+import io.github.petertrr.diffutils.text.DiffRowGenerator
+import kotlin.jvm.JvmName
+import kotlin.jvm.JvmOverloads
+
+// Instead of asking consumers to normalize their line endings, we simply catch them all.
+private val lineBreak = Regex("\r\n|\r|\n")
 
 /**
- * Computes the difference between the original and revised list of elements with default diff
- * algorithm
+ * Computes the difference between the source and target text.
  *
- * @param T types to be diffed
- * @param original The original text.
- * @param revised The revised text.
- * @param progress progress listener
- * @return The patch describing the difference between the original and revised sequences.
+ * By default, uses the Myers algorithm.
+ *
+ * @param sourceText The original text
+ * @param targetText The target text
+ * @param algorithm The diff algorithm to use
+ * @param progress The diff algorithm progress listener
+ * @param includeEqualParts Whether to include equal data parts into the patch. `false` by default.
+ * @return The patch describing the difference between the original and target text
  */
-public fun <T> diff(original: List<T>, revised: List<T>, progress: DiffAlgorithmListener?): Patch<T> {
-    return diff(original, revised, MyersDiff(), progress)
-}
-
-public fun <T> diff(original: List<T>, revised: List<T>): Patch<T> {
-    return diff(original, revised, MyersDiff(), null)
-}
-
-public fun <T> diff(original: List<T>, revised: List<T>, includeEqualParts: Boolean): Patch<T> {
-    return diff(original, revised, MyersDiff(), null, includeEqualParts)
-}
-
-/**
- * Computes the difference between the original and revised text.
- */
+@JvmOverloads
 public fun diff(
     sourceText: String,
     targetText: String,
-    progress: DiffAlgorithmListener?
-): Patch<String> {
-    return diff(
-        sourceText.split("\n"),
-        targetText.split("\n"),
-        progress
+    algorithm: DiffAlgorithm<String> = MyersDiff(),
+    progress: DiffAlgorithmListener = NoopAlgorithmListener(),
+    includeEqualParts: Boolean = false,
+): Patch<String> =
+    diff(
+        source = sourceText.split(lineBreak),
+        target = targetText.split(lineBreak),
+        algorithm = algorithm,
+        progress = progress,
+        includeEqualParts = includeEqualParts,
     )
-}
 
 /**
- * Computes the difference between the original and revised list of elements with default diff
- * algorithm
+ * Computes the difference between the source and target list of elements using the Myers algorithm.
  *
- * @param source The original text.
- * @param target The revised text.
- *
- * @param equalizer the equalizer object to replace the default compare algorithm
- * (Object.equals). If `null` the default equalizer of the default algorithm is used..
- * @return The patch describing the difference between the original and revised sequences.
+ * @param source The original elements
+ * @param target The target elements
+ * @param equalizer The equalizer to replace the default compare algorithm [Any.equals].
+ *   If `null`, the default equalizer of the default algorithm is used.
+ * @return The patch describing the difference between the source and target sequences
  */
 public fun <T> diff(
     source: List<T>,
     target: List<T>,
-    equalizer: ((T, T) -> Boolean)?
-): Patch<T> {
-    return if (equalizer != null) {
-        diff(
-            source,
-            target,
-            MyersDiff(equalizer)
-        )
-    } else {
-        diff(source, target, MyersDiff())
-    }
-}
-
-public fun <T> diff(
-    original: List<T>,
-    revised: List<T>,
-    algorithm: DiffAlgorithm<T>,
-    progress: DiffAlgorithmListener?
-): Patch<T> {
-    return diff(original, revised, algorithm, progress, false)
-}
+    equalizer: ((T, T) -> Boolean),
+): Patch<T> =
+    diff(
+        source = source,
+        target = target,
+        algorithm = MyersDiff(equalizer),
+    )
 
 /**
- * Computes the difference between the original and revised list of elements with default diff
- * algorithm
+ * Computes the difference between the original and target list of elements.
  *
- * @param original The original text. Must not be `null`.
- * @param revised The revised text. Must not be `null`.
- * @param algorithm The diff algorithm. Must not be `null`.
- * @param progress The diff algorithm listener.
- * @param includeEqualParts Include equal data parts into the patch.
- * @return The patch describing the difference between the original and revised sequences. Never
- * `null`.
+ * By default, uses the Meyers algorithm.
+ *
+ * @param source The original elements
+ * @param target The target elements
+ * @param algorithm The diff algorithm to use
+ * @param progress The diff algorithm progress listener
+ * @param includeEqualParts Whether to include equal data parts into the patch. `false` by default.
+ * @return The patch describing the difference between the original and target sequences
  */
+@JvmOverloads
 public fun <T> diff(
-    original: List<T>,
-    revised: List<T>,
-    algorithm: DiffAlgorithm<T>,
-    progress: DiffAlgorithmListener?,
-    includeEqualParts: Boolean
-): Patch<T> {
-    return Patch.generate(original, revised, algorithm.computeDiff(original, revised, progress), includeEqualParts)
-}
+    source: List<T>,
+    target: List<T>,
+    algorithm: DiffAlgorithm<T> = MyersDiff(),
+    progress: DiffAlgorithmListener = NoopAlgorithmListener(),
+    includeEqualParts: Boolean = false,
+): Patch<T> =
+    Patch.generate(
+        original = source,
+        revised = target,
+        changes = algorithm.computeDiff(source, target, progress),
+        includeEquals = includeEqualParts,
+    )
 
 /**
- * Computes the difference between the original and revised list of elements with default diff
- * algorithm
+ * Computes the difference between the given texts inline.
  *
- * @param original The original text. Must not be `null`.
- * @param revised The revised text. Must not be `null`.
- * @param algorithm The diff algorithm. Must not be `null`.
- * @return The patch describing the difference between the original and revised sequences. Never
- * `null`.
- */
-public fun <T> diff(original: List<T>, revised: List<T>, algorithm: DiffAlgorithm<T>): Patch<T> {
-    return diff(original, revised, algorithm, null)
-}
-
-/**
- * Computes the difference between the given texts inline. This one uses the "trick" to make out
- * of texts lists of characters, like DiffRowGenerator does and merges those changes at the end
- * together again.
- *
- * @param original
- * @param revised
- * @return
+ * This one uses the "trick" to make out of texts lists of characters,
+ * like [DiffRowGenerator] does and merges those changes at the end together again.
  */
 public fun diffInline(original: String, revised: String): Patch<String> {
-    val origList: MutableList<String> = arrayListOf()
-    val revList: MutableList<String> = arrayListOf()
-    for (character in original.toCharArray()) {
+    val origChars = original.toCharArray()
+    val origList = ArrayList<String>(origChars.size)
+
+    val revChars = revised.toCharArray()
+    val revList = ArrayList<String>(revChars.size)
+
+    for (character in origChars) {
         origList.add(character.toString())
     }
-    for (character in revised.toCharArray()) {
+
+    for (character in revChars) {
         revList.add(character.toString())
     }
-    val patch: Patch<String> = diff(origList, revList)
-    patch.deltas.map { delta ->
-        delta.withChunks(
-            delta.source.copy(lines = compressLines(delta.source.lines, "")),
-            delta.target.copy(lines = compressLines(delta.target.lines, ""))
+
+    val patch = diff(origList, revList)
+    patch.deltas = patch.deltas.mapTo(ArrayList(patch.deltas.size)) {
+        it.withChunks(
+            it.source.copy(lines = compressLines(it.source.lines, "")),
+            it.target.copy(lines = compressLines(it.target.lines, "")),
         )
     }
-        .let { patch.deltas = it.toMutableList() }
+
     return patch
 }
 
-private fun compressLines(lines: List<String>, delimiter: String): List<String> {
-    return if (lines.isEmpty()) {
-        emptyList()
-    } else {
-        listOf(lines.joinToString(delimiter))
-    }
-}
-
 /**
- * Patch the original text with given patch
+ * Patch the original text with the given patch.
  *
- * @param original the original text
- * @param patch the given patch
- * @return the revised text
- * @throws PatchFailedException if can't apply patch
+ * @param original The original text
+ * @param patch The patch to apply
+ * @return The revised text
+ * @throws PatchFailedException If the patch cannot be applied
  */
-@Throws(PatchFailedException::class)
-public fun <T> patch(original: List<T>, patch: Patch<T>): List<T> {
-    return patch.applyTo(original)
-}
+public fun <T> patch(original: List<T>, patch: Patch<T>): List<T> =
+    patch.applyTo(original)
 
 /**
  * Unpatch the revised text for a given patch
  *
- * @param revised the revised text
- * @param patch the given patch
- * @return the original text
+ * @param revised The revised text
+ * @param patch The given patch
+ * @return The original text
  */
-@Suppress("UNUSED")
-public fun <T> unpatch(revised: List<T>, patch: Patch<T>): List<T> {
-    return patch.restore(revised)
-}
+public fun <T> unpatch(revised: List<T>, patch: Patch<T>): List<T> =
+    patch.restore(revised)
+
+private fun compressLines(lines: List<String>, delimiter: String): List<String> =
+    if (lines.isEmpty()) {
+        emptyList()
+    } else {
+        listOf(lines.joinToString(delimiter))
+    }

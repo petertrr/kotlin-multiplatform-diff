@@ -19,30 +19,17 @@
 package io.github.petertrr.diffutils.algorithm
 
 /**
- * Interface of a diff algorithm.
+ * Describes a diff algorithm.
  *
- * @param T type of data that is diffed.
+ * @param T The type of data that should be diffed
  */
 public interface DiffAlgorithm<T> {
     /**
-     * Computes the changeset to patch the source list to the target list.
-     *
-     * @param source source data
-     * @param target target data
-     * @param progress progress listener
-     * @return
+     * Computes the changeset to patch the [source] list to the [target] list.
      */
-    public fun computeDiff(source: List<T>, target: List<T>, progress: DiffAlgorithmListener?): List<Change>
-
-    /**
-     * Simple extension to compute a changeset using arrays.
-     *
-     * @param source
-     * @param target
-     * @param progress
-     * @return
-     */
-    public fun computeDiff(source: Array<T>, target: Array<T>, progress: DiffAlgorithmListener?): List<Change> {
-        return computeDiff(source.toList(), target.toList(), progress)
-    }
+    public fun computeDiff(
+        source: List<T>,
+        target: List<T>,
+        progress: DiffAlgorithmListener = NoopAlgorithmListener(),
+    ): List<Change>
 }

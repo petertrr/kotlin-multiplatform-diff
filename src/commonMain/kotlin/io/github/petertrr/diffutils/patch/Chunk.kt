@@ -19,55 +19,52 @@
 package io.github.petertrr.diffutils.patch
 
 /**
- * Holds the information about the part of text involved in the diff process
+ * Holds the information about the part of text involved in the diff process.
  *
  * Text is represented as generic class `T` because the diff engine is capable of handling more
  * than plain ASCII. In fact, arrays or lists of any type that implements
  * `hashCode()` and `equals()` correctly can be subject to differencing using this library.
- * @param T The type of the compared elements in the 'lines'.
+ *
+ * @param position The start position of chunk in the text
+ * @param lines The affected lines
+ * @param changePosition The positions of changed lines of chunk in the text
+ * @param T The type of the compared elements in the 'lines'
  */
 public data class Chunk<T>(
-    /**
-     * the start position of chunk in the text
-     */
     val position: Int,
-    /**
-     * the affected lines
-     */
     val lines: List<T>,
-    /**
-     * the positions of changed lines of chunk in the text
-     */
-    val changePosition: List<Int>? = null
+    val changePosition: List<Int>? = null,
 ) {
     /**
      * Verifies that this chunk's saved text matches the corresponding text in the given sequence.
      *
-     * @param target the sequence to verify against.
-     * @throws PatchFailedException
+     * @param target The sequence to verify against
      */
     public fun verify(target: List<T>): VerifyChunk {
-        return if (position > target.size || last() > target.size) {
-            VerifyChunk.POSITION_OUT_OF_TARGET
-        } else if (
-            (0 until size()).any { i ->
-                target[position + i] != lines[i]
-            }
-        ) {
-            VerifyChunk.CONTENT_DOES_NOT_MATCH_TARGET
-        } else {
-            VerifyChunk.OK
+        val targetSize = target.size
+
+        if (position > targetSize || last() > targetSize) {
+            return VerifyChunk.POSITION_OUT_OF_TARGET
         }
+
+        for (i in 0..<size()) {
+            if (target[position + i] != lines[i]) {
+                return VerifyChunk.CONTENT_DOES_NOT_MATCH_TARGET
+            }
+        }
+
+        return VerifyChunk.OK
     }
 
-    public fun size(): Int = lines.size
+    public fun size(): Int =
+        lines.size
 
     /**
      * Returns the index of the last line of the chunk.
      */
-    public fun last(): Int {
-        return position + size() - 1
-    }
+    public fun last(): Int =
+        position + size() - 1
 
-    override fun toString(): String = "[position: $position, size: ${size()}, lines: $lines]"
+    override fun toString(): String =
+        "[position: $position, size: ${size()}, lines: $lines]"
 }

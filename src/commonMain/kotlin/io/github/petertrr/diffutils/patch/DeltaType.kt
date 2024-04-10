@@ -16,24 +16,40 @@
  *
  * This file has been modified by Peter Trifanov when porting from Java to Kotlin.
  */
-package io.github.petertrr.diffutils.algorithm
+package io.github.petertrr.diffutils.patch
 
-public interface DiffAlgorithmListener {
+/**
+ * Specifies the type of the delta. There are three types of modifications from
+ * the original to get the revised text.
+ *
+ * - CHANGE: a block of data of the original is replaced by another block of data.
+ * - DELETE: a block of data of the original is removed
+ * - INSERT: at a position of the original a block of data is inserted
+ *
+ * To be complete there is also
+ *
+ * - EQUAL: a block of data of original and the revised text is equal
+ *
+ * which is no change at all.
+ */
+public enum class DeltaType {
     /**
-     * Notifies computing a diff has started.
+     * A change in the original.
      */
-    public fun diffStart()
+    CHANGE,
 
     /**
-     * Notifies of a step within the diff algorithm.
-     *
-     * Due to different implementations the value is not strict incrementing
-     * to the max and is not guarantee to reach the max. It could stop before.
+     * A delete from the original.
      */
-    public fun diffStep(value: Int, max: Int)
+    DELETE,
 
     /**
-     * Notifies computing a diff has ended.
+     * An insert into the original.
      */
-    public fun diffEnd()
+    INSERT,
+
+    /**
+     * Do nothing.
+     */
+    EQUAL,
 }

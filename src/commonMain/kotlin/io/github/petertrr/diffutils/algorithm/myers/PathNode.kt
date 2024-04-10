@@ -20,47 +20,42 @@ package io.github.petertrr.diffutils.algorithm.myers
 
 /**
  * A node in a diffpath.
+ *
+ * @param i Position in the original sequence
+ * @param j Position in the revised sequence
+ * @param snake
+ * @param bootstrap Is this a bootstrap node?
+ *   In bootstrap nodes one of the two coordinates is less than zero.
+ * @param prev The previous node in the path, if any
  */
 internal class PathNode(
-    /**
-     * Position in the original sequence.
-     */
     val i: Int,
-    /**
-     * Position in the revised sequence.
-     */
     val j: Int,
     val snake: Boolean,
-    /**
-     * Is this a bootstrap node?
-     * In bootstrap nodes one of the two coordinates is less than zero.
-     */
     val bootstrap: Boolean,
-    prev: PathNode? = null
+    prev: PathNode? = null,
 ) {
     /**
      * The previous node in the path.
      */
-    val prev: PathNode?
-
-    init {
-        if (snake) {
-            this.prev = prev
-        } else {
-            this.prev = prev?.previousSnake()
-        }
+    val prev: PathNode? = if (snake) {
+        prev
+    } else {
+        prev?.previousSnake()
     }
 
     /**
      * Skips sequences of [PathNodes][PathNode] until a snake or bootstrap node is found, or the end of the
      * path is reached.
      *
-     * @return The next first [PathNode] or bootstrap node in the path, or `null` if none found.
+     * @return The next first [PathNode] or bootstrap node in the path, or `null` if none found
      */
+    @Suppress("MemberVisibilityCanBePrivate")
     fun previousSnake(): PathNode? {
         if (bootstrap) {
             return null
         }
+
         return if (!snake && prev != null) {
             prev.previousSnake()
         } else {
@@ -68,6 +63,20 @@ internal class PathNode(
         }
     }
 
-    override fun toString() = generateSequence(this) { it.prev }
-        .joinToString(prefix = "[", postfix = "]") { "(${it.i}, ${it.j})" }
+    override fun toString(): String {
+        val buf = StringBuilder("[")
+        var node: PathNode? = this
+
+        while (node != null) {
+            buf.append("(")
+            buf.append(node.i)
+            buf.append(",")
+            buf.append(node.j)
+            buf.append(")")
+            node = node.prev
+        }
+
+        buf.append("]")
+        return buf.toString()
+    }
 }

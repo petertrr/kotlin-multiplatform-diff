@@ -1,6 +1,6 @@
 /*
  * Copyright 2021 Peter Trifanov.
- * Copyright 2021 java-diff-utils.
+ * Copyright 2018 java-diff-utils.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,27 @@
  */
 package io.github.petertrr.diffutils.patch
 
-public fun interface ConflictOutput<T> {
-    public fun processConflict(verifyChunk: VerifyChunk, delta: Delta<T>, result: MutableList<T>)
+public data class DeleteDelta<T>(
+    override val source: Chunk<T>,
+    override val target: Chunk<T>,
+) : Delta<T>(DeltaType.DELETE) {
+    override fun applyTo(target: MutableList<T>) {
+        val position = source.position
+
+        for (i in 0..<source.size()) {
+            target.removeAt(position)
+        }
+    }
+
+    override fun restore(target: MutableList<T>) {
+        val position = this.target.position
+        val lines = this.source.lines
+
+        for ((i, line) in lines.withIndex()) {
+            target.add(position + i, line)
+        }
+    }
+
+    override fun withChunks(original: Chunk<T>, revised: Chunk<T>): Delta<T> =
+        DeleteDelta(original, revised)
 }

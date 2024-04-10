@@ -26,29 +26,31 @@ import io.github.petertrr.diffutils.patch.DeltaType
 /**
  * A clean-room implementation of Eugene Myers greedy differencing algorithm.
  */
-internal class MyersDiff<T>(private val equalizer: (T, T) -> Boolean = { t1, t2 -> t1 == t2 }) : DiffAlgorithm<T> {
+public class MyersDiff<T>(private val equalizer: (T, T) -> Boolean = { t1, t2 -> t1 == t2 }) : DiffAlgorithm<T> {
     /**
-     * Return empty diff if get the error while procession the difference.
+     * Returns an empty diff if we get an error while procession the difference.
      */
-    override fun computeDiff(source: List<T>, target: List<T>, progress: DiffAlgorithmListener?): List<Change> {
-        progress?.diffStart()
-        val path = buildPath(source, target, progress)
+    override fun computeDiff(source: List<T>, target: List<T>, progress: DiffAlgorithmListener): List<Change> {
+        progress.diffStart()
+
+        val path = buildPath(source, target, progress) ?: error("Expected a non-null path node")
         val result = buildRevision(path)
-        progress?.diffEnd()
+
+        progress.diffEnd()
         return result
     }
 
     /**
      * Computes the minimum diffpath that expresses the differences between the original and revised
-     * sequences, according to Gene Myers differencing algorithm.
+     * sequences, according to Eugene Myers differencing algorithm.
      *
-     * @param orig The original sequence.
-     * @param rev The revised sequence.
-     * @return A minimum [PathNode] across the differences graph.
-     * @throws IllegalStateException if a diff path could not be found.
+     * @param orig The original sequence
+     * @param rev The revised sequence
+     * @return A minimum [PathNode] across the differences graph
+     * @throws IllegalStateException If a diff path could not be found
      */
-    private fun buildPath(orig: List<T>, rev: List<T>, progress: DiffAlgorithmListener?): PathNode? {
-        // these are local constants
+    private fun buildPath(orig: List<T>, rev: List<T>, progress: DiffAlgorithmListener): PathNode? {
+        // These are local constants
         val origSize = orig.size
         val revSize = rev.size
         val max = origSize + revSize + 1
@@ -56,15 +58,18 @@ internal class MyersDiff<T>(private val equalizer: (T, T) -> Boolean = { t1, t2 
         val middle = size / 2
         val diagonal: Array<PathNode?> = arrayOfNulls(size)
         diagonal[middle + 1] = PathNode(0, -1, snake = true, bootstrap = true, prev = null)
-        for (d in 0 until max) {
-            progress?.diffStep(d, max)
+
+        for (d in 0..<max) {
+            progress.diffStep(d, max)
             var k = -d
+
             while (k <= d) {
                 val kmiddle = middle + k
                 val kplus = kmiddle + 1
                 val kminus = kmiddle - 1
                 var prev: PathNode?
                 var i: Int
+
                 if (k == -d || k != d && diagonal[kminus]!!.i < diagonal[kplus]!!.i) {
                     i = diagonal[kplus]!!.i
                     prev = diagonal[kplus]
@@ -72,49 +77,68 @@ internal class MyersDiff<T>(private val equalizer: (T, T) -> Boolean = { t1, t2 
                     i = diagonal[kminus]!!.i + 1
                     prev = diagonal[kminus]
                 }
-                diagonal[kminus] = null // no longer used
+
+                diagonal[kminus] = null // No longer used
                 var j = i - k
                 var node = PathNode(i, j, snake = false, bootstrap = false, prev = prev)
+
                 while (i < origSize && j < revSize && equalizer.invoke(orig[i], rev[j])) {
                     i++
                     j++
                 }
+
                 if (i != node.i) {
                     node = PathNode(i, j, snake = true, bootstrap = false, prev = node)
                 }
+
                 diagonal[kmiddle] = node
+
                 if (i >= origSize && j >= revSize) {
                     return diagonal[kmiddle]
                 }
+
                 k += 2
             }
+
             diagonal[middle + d - 1] = null
         }
-        error("could not find a diff path")
+
+        error("Could not find a diff path")
     }
 
     /**
      * Constructs a patch from a difference path.
      *
-     * @param actualPath The path.
-     * @param orig The original sequence.
-     * @param rev The revised sequence.
-     * @return A list of [Change]s corresponding to the path.
-     * @throws IllegalStateException if a patch could not be built from the given path.
+     * @param actualPath The path
+     * @return A list of [Change]s corresponding to the path
+     * @throws IllegalStateException If a patch could not be built from the given path
      */
-    private fun buildRevision(actualPath: PathNode?): List<Change> {
-        var path: PathNode? = actualPath
-        val changes: MutableList<Change> = mutableListOf()
-        if (path!!.snake) {
-            path = path.prev
+    private fun buildRevision(actualPath: PathNode): List<Change> {
+        var path = if (actualPath.snake) {
+            actualPath.prev
+        } else {
+            actualPath
         }
-        while (path?.prev != null && path.prev!!.j >= 0) {
-            check(!path.snake) { "bad diffpath: found snake when looking for diff" }
-            val i: Int = path.i
-            val j: Int = path.j
-            path = path.prev
-            val iAnchor: Int = path!!.i
-            val jAnchor: Int = path.j
+
+        val changes = ArrayList<Change>()
+
+        while (path != null) {
+            val prevPath = path.prev
+
+            if (prevPath == null || prevPath.j < 0) {
+                break
+            }
+
+            check(!path.snake) { "Bad diffpath: found snake when looking for diff" }
+
+            val i = path.i
+            val j = path.j
+
+            path = prevPath
+
+            val iAnchor = path.i
+            val jAnchor = path.j
+
             if (iAnchor == i && jAnchor != j) {
                 changes.add(Change(DeltaType.INSERT, iAnchor, i, jAnchor, j))
             } else if (iAnchor != i && jAnchor == j) {
@@ -122,10 +146,12 @@ internal class MyersDiff<T>(private val equalizer: (T, T) -> Boolean = { t1, t2 
             } else {
                 changes.add(Change(DeltaType.CHANGE, iAnchor, i, jAnchor, j))
             }
+
             if (path.snake) {
                 path = path.prev
             }
         }
+
         return changes
     }
 }

@@ -16,54 +16,59 @@
  *
  * This file has been modified by Peter Trifanov when porting from Java to Kotlin.
  */
+@file:JvmName("StringUtils")
+
 package io.github.petertrr.diffutils.text
 
-/**
- * Replaces all opening and closing tags with `<` or `>`.
- *
- * @param str
- * @return str with some HTML meta characters escaped.
- */
-internal fun htmlEntities(str: String): String {
-    return str.replace("<", "&lt;").replace(">", "&gt;")
-}
+import kotlin.jvm.JvmName
 
-internal fun normalize(str: String): String {
-    return htmlEntities(str).replace("\t", "    ")
-}
+/**
+ * Replaces all opening and closing tags (`<` and `>`)
+ * with their escaped sequences (`&lt;` and `&gt;`).
+ */
+internal fun htmlEntities(str: String): String =
+    str.replace("<", "&lt;").replace(">", "&gt;")
+
+/**
+ * Normalizes a string by escaping some HTML meta characters
+ * and replacing tabs with 4 spaces each.
+ */
+internal fun normalize(str: String): String =
+    htmlEntities(str).replace("\t", "    ")
 
 /**
  * Wrap the text with the given column width
- *
- * @param line the text
- * @param columnWidth the given column
- * @return the wrapped text
  */
 internal fun wrapText(line: String, columnWidth: Int): String {
-    require(columnWidth >= 0) { "columnWidth may not be less 0" }
+    require(columnWidth >= 0) { "Column width must be greater than or equal to 0" }
+
     if (columnWidth == 0) {
         return line
     }
+
     val length = line.length
     val delimiter = "<br/>".length
     var widthIndex = columnWidth
     val b = StringBuilder(line)
     var count = 0
+
     while (length > widthIndex) {
         var breakPoint = widthIndex + delimiter * count
-        if (b[breakPoint - 1].isHighSurrogate() &&
-            b[breakPoint].isLowSurrogate()
-        ) {
+
+        if (b[breakPoint - 1].isHighSurrogate() && b[breakPoint].isLowSurrogate()) {
             // Shift a breakpoint that would split a supplemental code-point.
             breakPoint += 1
+
             if (breakPoint == b.length) {
                 // Break before instead of after if this is the last code-point.
                 breakPoint -= 2
             }
         }
+
         b.insert(breakPoint, "<br/>")
         widthIndex += columnWidth
         count++
     }
+
     return b.toString()
 }

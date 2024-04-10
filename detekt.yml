@@ -1,11 +1,17 @@
 style:
   active: true
+  ReturnCount:
+    max: 3
   MaxLineLength:
     active: true
     maxLineLength: 180
+  ForbiddenComment:
+    active: false
 formatting:
   active: true
   MaximumLineLength:
     active: false
   ParameterListWrapping:
     active: false
+  TrailingCommaOnDeclarationSite:
+    active: true

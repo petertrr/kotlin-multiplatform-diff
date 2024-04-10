@@ -25,5 +25,5 @@ public data class Change(
     val startOriginal: Int,
     val endOriginal: Int,
     val startRevised: Int,
-    val endRevised: Int
+    val endRevised: Int,
 )
