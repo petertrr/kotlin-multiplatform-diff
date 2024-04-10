@@ -5,6 +5,8 @@ style:
   MaxLineLength:
     active: true
     maxLineLength: 180
+  ForbiddenComment:
+    active: false
 formatting:
   active: true
   MaximumLineLength:
