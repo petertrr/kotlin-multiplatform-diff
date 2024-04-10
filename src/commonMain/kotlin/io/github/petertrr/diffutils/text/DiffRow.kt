@@ -19,7 +19,7 @@
 package io.github.petertrr.diffutils.text
 
 /**
- * Describes the diff row in form `[tag, oldLine, newLine)` for showing the difference between two texts.
+ * Describes the diff row in form `[tag, oldLine, newLine]` for showing the difference between two texts.
  */
 public data class DiffRow(val tag: Tag, val oldLine: String, val newLine: String) {
     public enum class Tag {
@@ -28,4 +28,7 @@ public data class DiffRow(val tag: Tag, val oldLine: String, val newLine: String
         CHANGE,
         EQUAL,
     }
+
+    override fun toString(): String =
+        "[$tag, $oldLine, $newLine]"
 }

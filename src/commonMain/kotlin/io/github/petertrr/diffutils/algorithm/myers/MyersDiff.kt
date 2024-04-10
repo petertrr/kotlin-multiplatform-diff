@@ -35,8 +35,8 @@ public class MyersDiff<T>(private val equalizer: (T, T) -> Boolean = { t1, t2 ->
 
         val path = buildPath(source, target, progress) ?: error("Expected a non-null path node")
         val result = buildRevision(path)
-        progress.diffEnd()
 
+        progress.diffEnd()
         return result
     }
 
@@ -122,7 +122,7 @@ public class MyersDiff<T>(private val equalizer: (T, T) -> Boolean = { t1, t2 ->
 
         val changes = ArrayList<Change>()
 
-        // This can be improved to avoid the non-null assertion on prev
+        // TODO: this can be improved to avoid the non-null assertion on prev
         while (path?.prev != null && path.prev!!.j >= 0) {
             check(!path.snake) { "Bad diffpath: found snake when looking for diff" }
 

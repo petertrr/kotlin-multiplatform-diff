@@ -18,7 +18,12 @@
  */
 package io.github.petertrr.diffutils
 
-import io.github.petertrr.diffutils.patch.*
+import io.github.petertrr.diffutils.patch.ChangeDelta
+import io.github.petertrr.diffutils.patch.Chunk
+import io.github.petertrr.diffutils.patch.DeleteDelta
+import io.github.petertrr.diffutils.patch.EqualDelta
+import io.github.petertrr.diffutils.patch.InsertDelta
+import io.github.petertrr.diffutils.patch.Patch
 import io.github.petertrr.diffutils.utils.changeDeltaOf
 import io.github.petertrr.diffutils.utils.deleteDeltaOf
 import io.github.petertrr.diffutils.utils.insertDeltaOf

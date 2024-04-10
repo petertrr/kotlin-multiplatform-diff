@@ -168,7 +168,7 @@ public class DiffRowGenerator(
         original: List<String>,
         endPos: Int,
         diffRows: MutableList<DiffRow>,
-        delta: Delta<String>
+        delta: Delta<String>,
     ): Int {
         val orig: Chunk<String> = delta.source
         val rev: Chunk<String> = delta.target
