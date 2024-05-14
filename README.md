@@ -21,6 +21,7 @@ Please refer to the original guides for more information.
 Currently, artifacts for the following platforms are supported:
 * JVM
 * JS (both browser and Node.js)
+* WebAssembly (JS and WASI)
 * LinuxX64
 * MingwX64
 * MacosX64
