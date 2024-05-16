@@ -18,6 +18,9 @@
  */
 package io.github.petertrr.diffutils.text
 
+import io.github.petertrr.diffutils.algorithm.DiffEqualizer
+import io.github.petertrr.diffutils.algorithm.EqualsDiffEqualizer
+import io.github.petertrr.diffutils.algorithm.IgnoreWsStringDiffEqualizer
 import io.github.petertrr.diffutils.diff
 import io.github.petertrr.diffutils.patch.ChangeDelta
 import io.github.petertrr.diffutils.patch.Chunk
@@ -51,7 +54,7 @@ public class DiffRowGenerator(
     /**
      * Provide an equalizer for diff processing.
      */
-    private var equalizer: ((String, String) -> Boolean) = if (ignoreWhiteSpaces) IGNORE_WHITESPACE_EQUALIZER else DEFAULT_EQUALIZER,
+    private var equalizer: DiffEqualizer<String> = if (ignoreWhiteSpaces) IgnoreWsStringDiffEqualizer() else EqualsDiffEqualizer(),
 
     /**
      * Per default each character is separately processed. Setting this parameter to `true`
@@ -410,12 +413,6 @@ public class DiffRowGenerator(
     }
 
     public companion object {
-        internal val DEFAULT_EQUALIZER: (Any?, Any?) -> Boolean = { o1: Any?, o2: Any? -> o1 == o2 }
-        internal val IGNORE_WHITESPACE_EQUALIZER: (String, String) -> Boolean = { original: String, revised: String ->
-            adjustWhitespace(
-                original
-            ) == adjustWhitespace(revised)
-        }
         internal val LINE_NORMALIZER_FOR_HTML: (String) -> String = { normalize(it) }
 
         /**
@@ -438,11 +435,6 @@ public class DiffRowGenerator(
                 line,
                 SPLIT_BY_WORD_PATTERN
             )
-        }
-        internal val WHITESPACE_PATTERN = Regex("\\s+")
-
-        private fun adjustWhitespace(raw: String): String {
-            return WHITESPACE_PATTERN.replace(raw.trim(), " ")
         }
 
         internal fun splitStringPreserveDelimiter(str: String?, splitPattern: Regex): List<String> {

@@ -22,6 +22,7 @@ package io.github.petertrr.diffutils
 
 import io.github.petertrr.diffutils.algorithm.DiffAlgorithm
 import io.github.petertrr.diffutils.algorithm.DiffAlgorithmListener
+import io.github.petertrr.diffutils.algorithm.DiffEqualizer
 import io.github.petertrr.diffutils.algorithm.NoopAlgorithmListener
 import io.github.petertrr.diffutils.algorithm.myers.MyersDiff
 import io.github.petertrr.diffutils.patch.Patch
@@ -73,7 +74,7 @@ public fun diff(
 public fun <T> diff(
     source: List<T>,
     target: List<T>,
-    equalizer: ((T, T) -> Boolean),
+    equalizer: DiffEqualizer<T>,
 ): Patch<T> =
     diff(
         source = source,

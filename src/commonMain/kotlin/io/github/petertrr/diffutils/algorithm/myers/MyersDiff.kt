@@ -21,12 +21,14 @@ package io.github.petertrr.diffutils.algorithm.myers
 import io.github.petertrr.diffutils.algorithm.Change
 import io.github.petertrr.diffutils.algorithm.DiffAlgorithm
 import io.github.petertrr.diffutils.algorithm.DiffAlgorithmListener
+import io.github.petertrr.diffutils.algorithm.DiffEqualizer
+import io.github.petertrr.diffutils.algorithm.EqualsDiffEqualizer
 import io.github.petertrr.diffutils.patch.DeltaType
 
 /**
  * A clean-room implementation of Eugene Myers greedy differencing algorithm.
  */
-public class MyersDiff<T>(private val equalizer: (T, T) -> Boolean = { t1, t2 -> t1 == t2 }) : DiffAlgorithm<T> {
+public class MyersDiff<T>(private val equalizer: DiffEqualizer<T> = EqualsDiffEqualizer()) : DiffAlgorithm<T> {
     /**
      * Returns an empty diff if we get an error while procession the difference.
      */
@@ -82,7 +84,7 @@ public class MyersDiff<T>(private val equalizer: (T, T) -> Boolean = { t1, t2 ->
                 var j = i - k
                 var node = PathNode(i, j, snake = false, bootstrap = false, prev = prev)
 
-                while (i < origSize && j < revSize && equalizer.invoke(orig[i], rev[j])) {
+                while (i < origSize && j < revSize && equalizer.test(orig[i], rev[j])) {
                     i++
                     j++
                 }
