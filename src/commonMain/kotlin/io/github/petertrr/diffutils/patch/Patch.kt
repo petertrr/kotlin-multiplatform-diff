@@ -91,7 +91,7 @@ public class Patch<T>(private var conflictOutput: ConflictOutput<T> = ExceptionP
             generate(original, revised, changes, false)
 
         private fun <T> buildChunk(start: Int, end: Int, data: List<T>): Chunk<T> =
-            Chunk(start, data.subList(start, end))
+            Chunk(start, data.slice(start..<end))
 
         public fun <T> generate(
             original: List<T>,
