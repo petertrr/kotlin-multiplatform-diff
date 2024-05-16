@@ -24,6 +24,7 @@ import io.github.petertrr.diffutils.algorithm.DiffAlgorithmListener
 import io.github.petertrr.diffutils.algorithm.DiffEqualizer
 import io.github.petertrr.diffutils.algorithm.EqualsDiffEqualizer
 import io.github.petertrr.diffutils.patch.DeltaType
+import kotlin.jvm.JvmField
 
 public class MyersDiffWithLinearSpace<T>(
     private val equalizer: DiffEqualizer<T> = EqualsDiffEqualizer(),
@@ -202,18 +203,25 @@ public class MyersDiffWithLinearSpace<T>(
     }
 
     private class DiffData<T>(
-        val source: List<T>,
-        val target: List<T>,
+        @JvmField val source: List<T>,
+        @JvmField val target: List<T>,
     ) {
+        @JvmField
         val size = source.size + target.size + 2
+
+        @JvmField
         val vDown = IntArray(size)
+
+        @JvmField
         val vUp = IntArray(size)
+
+        @JvmField
         val script = ArrayList<Change>()
     }
 
     private class Snake(
-        val start: Int,
-        val end: Int,
-        val diag: Int,
+        @JvmField val start: Int,
+        @JvmField val end: Int,
+        @JvmField val diag: Int,
     )
 }

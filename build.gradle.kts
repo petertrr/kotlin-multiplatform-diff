@@ -37,7 +37,10 @@ kotlin {
                 jvmTarget = JvmTarget.JVM_1_8
 
                 // Output interfaces with default methods
-                freeCompilerArgs.add("-Xjvm-default=all")
+                freeCompilerArgs.addAll(
+                    "-Xjvm-default=all",      // Output interfaces with default methods
+                    "-Xno-param-assertions",  // Remove Intrinsics.checkNotNullParameter
+                )
             }
         }
 

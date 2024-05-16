@@ -18,10 +18,16 @@
  */
 package io.github.petertrr.diffutils.text
 
+import kotlin.jvm.JvmField
+
 /**
  * Describes the diff row in form `[tag, oldLine, newLine]` for showing the difference between two texts.
  */
-public data class DiffRow(val tag: Tag, val oldLine: String, val newLine: String) {
+public data class DiffRow(
+    @JvmField val tag: Tag,
+    @JvmField val oldLine: String,
+    @JvmField val newLine: String,
+) {
     public enum class Tag {
         INSERT,
         DELETE,

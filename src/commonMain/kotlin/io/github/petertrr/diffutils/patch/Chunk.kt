@@ -18,6 +18,8 @@
  */
 package io.github.petertrr.diffutils.patch
 
+import kotlin.jvm.JvmField
+
 /**
  * Holds the information about the part of text involved in the diff process.
  *
@@ -31,9 +33,9 @@ package io.github.petertrr.diffutils.patch
  * @param T The type of the compared elements in the 'lines'
  */
 public data class Chunk<T>(
-    val position: Int,
-    val lines: List<T>,
-    val changePosition: List<Int>? = null,
+    @JvmField val position: Int,
+    @JvmField val lines: List<T>,
+    @JvmField val changePosition: List<Int>? = null,
 ) {
     /**
      * Verifies that this chunk's saved text matches the corresponding text in the given sequence.

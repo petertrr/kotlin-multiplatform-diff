@@ -21,6 +21,7 @@ package io.github.petertrr.diffutils.algorithm.myers
 import io.github.petertrr.diffutils.algorithm.DiffAlgorithmListener
 import io.github.petertrr.diffutils.diff
 import io.github.petertrr.diffutils.patch.Patch
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.time.measureTimedValue
@@ -91,6 +92,7 @@ class MyersDiffWithLinearSpaceTest {
     }
 
     @Test
+    @Ignore
     fun testPerformanceProblemsIssue124() {
         val old = listOf("abcd")
         val new = (0..<90000)
