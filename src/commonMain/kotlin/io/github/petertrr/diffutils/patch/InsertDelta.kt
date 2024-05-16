@@ -41,4 +41,7 @@ public data class InsertDelta<T>(
 
     override fun withChunks(original: Chunk<T>, revised: Chunk<T>): Delta<T> =
         InsertDelta(original, revised)
+
+    override fun toString(): String =
+        "[InsertDelta, position: ${source.position}, lines: ${target.lines}]"
 }

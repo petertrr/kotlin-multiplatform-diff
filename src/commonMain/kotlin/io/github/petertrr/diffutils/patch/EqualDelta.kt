@@ -32,4 +32,7 @@ public data class EqualDelta<T>(
 
     override fun withChunks(original: Chunk<T>, revised: Chunk<T>): Delta<T> =
         EqualDelta(original, revised)
+
+    override fun toString(): String =
+        "[EqualDelta, position: ${source.position}, lines: ${source.lines}]"
 }
