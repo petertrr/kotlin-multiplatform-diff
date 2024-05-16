@@ -124,6 +124,13 @@ public class DiffRowGenerator(
      * readable the linefeeds could be replaced by spaces.
      */
     public val replaceOriginalLinefeedInChangesWithSpaces: Boolean = false,
+
+    /**
+     * Deltas could be in a state, that would produce some unreasonable
+     * results within an inline diff. So the deltas are decompressed into
+     * smaller parts and rebuild. But this could result in more differences.
+     */
+    public val decompressDeltas: Boolean = true,
 ) {
     /**
      * Get the DiffRows describing the difference between original and revised
@@ -147,10 +154,17 @@ public class DiffRowGenerator(
      * @return the DiffRows between original and revised texts
      */
     public fun generateDiffRows(original: List<String>, patch: Patch<String>): List<DiffRow> {
-        val diffRows: MutableList<DiffRow> = ArrayList()
+        val diffRows = ArrayList<DiffRow>()
         var endPos = 0
-        for (originalDelta in patch.deltas) {
-            for (delta in decompressDeltas(originalDelta)) {
+
+        if (decompressDeltas) {
+            for (originalDelta in patch.deltas) {
+                for (delta in decompressDeltas(originalDelta)) {
+                    endPos = transformDeltaIntoDiffRow(original, endPos, diffRows, delta)
+                }
+            }
+        } else {
+            for (delta in patch.deltas) {
                 endPos = transformDeltaIntoDiffRow(original, endPos, diffRows, delta)
             }
         }
@@ -159,6 +173,7 @@ public class DiffRowGenerator(
         for (line in original.subList(endPos, original.size)) {
             diffRows.add(buildDiffRow(DiffRow.Tag.EQUAL, line, line))
         }
+
         return diffRows
     }
 

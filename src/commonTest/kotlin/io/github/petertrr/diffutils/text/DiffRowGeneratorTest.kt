@@ -714,4 +714,75 @@ Bengal tiger panther but singapura but bombay munchkin for cougar. And more.""".
         rows.filter { it.tag != DiffRow.Tag.EQUAL }
             .forEach { println(it) }
     }
+
+    @Test
+    fun testIssue129WithDeltaDecompression() {
+        val lines1 = listOf(
+            "apple1",
+            "apple2",
+            "apple3",
+            "A man named Frankenstein abc to Switzerland for cookies!",
+            "banana1",
+            "banana2",
+            "banana3",
+        )
+
+        val lines2 = listOf(
+            "apple1",
+            "apple2",
+            "apple3",
+            "A man named Frankenstein",
+            "xyz",
+            "to Switzerland for cookies!",
+            "banana1",
+            "banana2",
+            "banana3",
+        )
+
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            oldTag = { tag, isOpening -> if (isOpening) "==old$tag==>" else "<==old==" },
+            newTag = { tag, isOpening -> if (isOpening) "==new$tag==>" else "<==new==" },
+        )
+
+        val diffRows = generator.generateDiffRows(lines1, lines2)
+        val txt = diffRows.joinToString(separator = " ") { row -> row.tag.toString() }
+        assertEquals(txt, "EQUAL EQUAL EQUAL CHANGE INSERT INSERT EQUAL EQUAL EQUAL")
+    }
+
+    @Test
+    fun testIssue129SkipDeltaDecompression() {
+        val lines1 = listOf(
+            "apple1",
+            "apple2",
+            "apple3",
+            "A man named Frankenstein abc to Switzerland for cookies!",
+            "banana1",
+            "banana2",
+            "banana3",
+        )
+
+        val lines2 = listOf(
+            "apple1",
+            "apple2",
+            "apple3",
+            "A man named Frankenstein",
+            "xyz",
+            "to Switzerland for cookies!",
+            "banana1",
+            "banana2",
+            "banana3",
+        )
+
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            decompressDeltas = false,
+            oldTag = { tag, isOpening -> if (isOpening) "==old$tag==>" else "<==old==" },
+            newTag = { tag, isOpening -> if (isOpening) "==new$tag==>" else "<==new==" },
+        )
+
+        val diffRows = generator.generateDiffRows(lines1, lines2)
+        val txt = diffRows.joinToString(separator = " ") { row -> row.tag.toString() }
+        assertEquals(txt, "EQUAL EQUAL EQUAL CHANGE CHANGE CHANGE EQUAL EQUAL EQUAL")
+    }
 }
