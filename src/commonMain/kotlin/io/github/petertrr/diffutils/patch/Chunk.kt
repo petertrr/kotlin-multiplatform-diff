@@ -40,7 +40,7 @@ public data class Chunk<T>(
      *
      * @param target The sequence to verify against
      */
-    public fun verify(target: List<T>): VerifyChunk {
+    public fun verifyChunk(target: List<T>): VerifyChunk {
         val targetSize = target.size
 
         if (position > targetSize || last() > targetSize) {
