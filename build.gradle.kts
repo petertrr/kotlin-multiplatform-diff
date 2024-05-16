@@ -7,6 +7,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 
 plugins {
     kotlin("multiplatform")
@@ -48,8 +49,20 @@ kotlin {
     }
 
     js {
-        browser()
-        nodejs()
+        val testConfig: (KotlinJsTest).() -> Unit = {
+            useMocha {
+                // Override default 2s timeout
+                timeout = "120s"
+            }
+        }
+
+        browser {
+            testTask(testConfig)
+        }
+
+        nodejs {
+            testTask(testConfig)
+        }
     }
 
     @OptIn(ExperimentalWasmDsl::class)
