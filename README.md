@@ -29,7 +29,7 @@ Currently, artifacts for the following platforms are supported:
 - WebAssembly (JS and WASI)
 - Native
 
-The supported Native targets are:
+The supported Native targets are (following the Kotlin/Native [target support guidelines](https://kotlinlang.org/docs/native-target-support.html)):
 
 | Tier 1   | Tier 2   | Tier 3   |
 |:---------|:---------|:---------|
