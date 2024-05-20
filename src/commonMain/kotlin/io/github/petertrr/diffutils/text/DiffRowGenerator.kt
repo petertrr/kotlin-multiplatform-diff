@@ -33,126 +33,87 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * This class for generating DiffRows for side-by-side view. You can customize
+ * This class for generating [DiffRow]s for side-by-side view. You can customize
  * the way of generating. For example, show inline diffs on not, ignoring white
  * spaces or/and blank lines and so on. All parameters for generating are
  * optional. If you do not specify them, the class will use the default values.
+ *
+ * @param columnWidth Set the column width of generated lines of original and revised texts.
+ *   Making it < 0 doesn't make any sense.
+ * @param ignoreWhiteSpaces Ignore white spaces in generating diff rows or not
+ * @param equalizer Provide an equalizer for diff processing
+ * @param inlineDiffByWord Per default each character is separately processed.
+ *   Setting this parameter to `true` introduces processing by word, which does
+ *   not deliver in word changes. Therefore, the whole word will be tagged as changed:
+ *   ```
+ *   false:    (aBa : aba) --  changed: a(B)a : a(b)a
+ *   true:     (aBa : aba) --  changed: (aBa) : (aba)
+ *   ```
+ *   Default: `false`
+ * @param inlineDiffSplitter To provide some customized splitting a splitter can be provided.
+ *   Here someone could think about sentence splitter, comma splitter or stuff like that.
+ * @param mergeOriginalRevised Merge the complete result within the original text.
+ *   This makes sense for one line display.
+ *   Default: `false`
+ * @param newTag Generator for New-Text-Tags
+ * @param oldTag Generator for Old-Text-Tags
+ * @param reportLinesUnchanged Give the original old and new text lines to [DiffRow]
+ *   without any additional processing and without any tags to highlight the change.
+ *   Default: `false`
+ * @param lineNormalizer By default, [DiffRowGenerator] preprocesses lines for HTML output.
+ *   Tabs and special HTML characters like "&lt;" are replaced with its encoded value.
+ *   To change this you can provide a customized line normalizer here.
+ * @param processDiffs Optional processor for diffed text parts.
+ *   Here e.g. white characters could be replaced by something visible.
+ * @param showInlineDiffs Show inline diffs in generating diff rows or not.
+ *   Default: `false`
+ * @param replaceOriginalLinefeedInChangesWithSpaces Sometimes it happens that a change
+ *   contains multiple lines. If there is no correspondence in old and new.
+ *   To keep the merged line more readable the line feeds could be replaced by spaces.
+ *   Default: `false`
+ * @param decompressDeltas Deltas could be in a state, that would produce some unreasonable
+ *   results within an inline diff. So the deltas are decompressed into smaller parts and rebuild.
+ *   But this could result in more differences.
+ *   Default: `true`
  */
 @Suppress("LongParameterList")
 public class DiffRowGenerator(
-    /**
-     * Set the column width of generated lines of original and revised
-     * texts. Making it < 0 doesn't make any sense.
-     */
-    public val columnWidth: Int = 80,
-
-    /**
-     * Ignore white spaces in generating diff rows or not.
-     */
-    public val ignoreWhiteSpaces: Boolean = false,
-
-    /**
-     * Provide an equalizer for diff processing.
-     */
+    private val columnWidth: Int = 80,
+    private val ignoreWhiteSpaces: Boolean = false,
     private var equalizer: DiffEqualizer<String> = if (ignoreWhiteSpaces) IgnoreWsStringDiffEqualizer() else EqualsDiffEqualizer(),
-
-    /**
-     * Per default each character is separately processed. Setting this parameter to `true`
-     * introduces processing by word, which does not deliver in word
-     * changes. Therefore, the whole word will be tagged as changed:
-     *
-     * ```
-     * <pre>
-     * false:    (aBa : aba) --  changed: a(B)a : a(b)a
-     * true:     (aBa : aba) --  changed: (aBa) : (aba)
-     * </pre> *
-     * ```
-     */
     inlineDiffByWord: Boolean = false,
-
-    /**
-     * To provide some customized splitting a splitter can be provided. Here
-     * someone could think about sentence splitter, comma splitter or stuff
-     * like that.
-     */
-    public val inlineDiffSplitter: (String) -> List<String> = if (inlineDiffByWord) SPLITTER_BY_WORD else SPLITTER_BY_CHARACTER,
-
-    /**
-     * Merge the complete result within the original text. This makes sense
-     * for one line display.
-     */
-    public val mergeOriginalRevised: Boolean = false,
-
-    /**
-     * Generator for New-Text-Tags.
-     */
-    public val newTag: (DiffRow.Tag, Boolean) -> String = { _: DiffRow.Tag, f: Boolean -> if (f) "<span class=\"editNewInline\">" else "</span>" },
-
-    /**
-     * Generator for Old-Text-Tags.
-     */
-    public val oldTag: (DiffRow.Tag, Boolean) -> String = { _: DiffRow.Tag, f: Boolean -> if (f) "<span class=\"editOldInline\">" else "</span>" },
-
-    /**
-     * Give the original old and new text lines to DiffRow without any
-     * additional processing and without any tags to highlight the change.
-     */
-    public val reportLinesUnchanged: Boolean = false,
-
-    /**
-     * By default DiffRowGenerator preprocesses lines for HTML output. Tabs
-     * and special HTML characters like "&lt;" are replaced with its encoded
-     * value. To change this you can provide a customized line normalizer
-     * here.
-     */
-    public val lineNormalizer: (String) -> String = LINE_NORMALIZER_FOR_HTML,
-
-    /**
-     * Optional processor for diffed text parts. Here e.g. white characters could be
-     * replaced by something visible.
-     */
-    public val processDiffs: ((String) -> String)? = null,
-
-    /**
-     * Show inline diffs in generating diff rows or not. Default: false.
-     */
-    public val showInlineDiffs: Boolean = false,
-
-    /**
-     * Sometimes it happens that a change contains multiple lines. If there
-     * is no correspondence in old and new. To keep the merged line more
-     * readable the linefeeds could be replaced by spaces.
-     */
-    public val replaceOriginalLinefeedInChangesWithSpaces: Boolean = false,
-
-    /**
-     * Deltas could be in a state, that would produce some unreasonable
-     * results within an inline diff. So the deltas are decompressed into
-     * smaller parts and rebuild. But this could result in more differences.
-     */
-    public val decompressDeltas: Boolean = true,
+    private val inlineDiffSplitter: DiffSplitter = if (inlineDiffByWord) WordDiffSplitter() else CharDiffSplitter(),
+    private val mergeOriginalRevised: Boolean = false,
+    private val newTag: DiffTagGenerator = NewDiffTagGenerator(),
+    private val oldTag: DiffTagGenerator = OldDiffTagGenerator(),
+    private val reportLinesUnchanged: Boolean = false,
+    private val lineNormalizer: DiffLineNormalizer = HtmlLineNormalizer(),
+    private val processDiffs: DiffLineProcessor? = null,
+    private val showInlineDiffs: Boolean = false,
+    private val replaceOriginalLinefeedInChangesWithSpaces: Boolean = false,
+    private val decompressDeltas: Boolean = true,
 ) {
     /**
-     * Get the DiffRows describing the difference between original and revised
+     * Get the [DiffRow]s describing the difference between original and revised
      * texts. Useful for displaying side-by-side diff.
      *
-     * @param original the original text
-     * @param revised the revised text
-     * @return the DiffRows between original and revised texts
+     * @param original The original text
+     * @param revised The revised text
+     * @return The [DiffRow]s between original and revised texts
      */
-    public fun generateDiffRows(original: List<String>, revised: List<String>): List<DiffRow> {
-        return generateDiffRows(original, diff(original, revised, equalizer))
-    }
+    public fun generateDiffRows(original: List<String>, revised: List<String>): List<DiffRow> =
+        generateDiffRows(original, diff(original, revised, equalizer))
 
     /**
-     * Generates the DiffRows describing the difference between original and
+     * Generates the [DiffRow]s describing the difference between original and
      * revised texts using the given patch. Useful for displaying side-by-side
      * diff.
      *
-     * @param original the original text
-     * @param patch the given patch
-     * @return the DiffRows between original and revised texts
+     * @param original The original text
+     * @param patch The given patch
+     * @return The [DiffRow]s between original and revised texts
      */
+    @Suppress("MemberVisibilityCanBePrivate")
     public fun generateDiffRows(original: List<String>, patch: Patch<String>): List<DiffRow> {
         val diffRows = ArrayList<DiffRow>()
         var endPos = 0
@@ -169,7 +130,7 @@ public class DiffRowGenerator(
             }
         }
 
-        // Copy the final matching chunk if any.
+        // Copy the final matching chunk if any
         for (line in original.subList(endPos, original.size)) {
             diffRows.add(buildDiffRow(DiffRow.Tag.EQUAL, line, line))
         }
@@ -177,10 +138,13 @@ public class DiffRowGenerator(
         return diffRows
     }
 
+    internal fun normalizeLines(list: List<String>): List<String> =
+        if (reportLinesUnchanged) list else list.map { lineNormalizer.normalize(it) }
+
     /**
-     * Transforms one patch delta into a DiffRow object.
+     * Transforms one patch delta into a [DiffRow] object.
      *
-     * @param endPos line number after previous delta end
+     * @param endPos Line number after previous delta end
      */
     private fun transformDeltaIntoDiffRow(
         original: List<String>,
@@ -188,33 +152,44 @@ public class DiffRowGenerator(
         diffRows: MutableList<DiffRow>,
         delta: Delta<String>,
     ): Int {
-        val orig: Chunk<String> = delta.source
-        val rev: Chunk<String> = delta.target
+        val orig = delta.source
+        val rev = delta.target
+
         for (line in original.subList(endPos, orig.position)) {
-            // all lines since previous delta until the start of the current delta
+            // All lines since previous delta until the start of the current delta
             diffRows.add(buildDiffRow(DiffRow.Tag.EQUAL, line, line))
         }
+
         when (delta.type) {
-            DeltaType.INSERT -> for (line in rev.lines) {
-                diffRows.add(buildDiffRow(DiffRow.Tag.INSERT, "", line))
+            DeltaType.INSERT -> {
+                for (line in rev.lines) {
+                    val row = buildDiffRow(DiffRow.Tag.INSERT, "", line)
+                    diffRows.add(row)
+                }
             }
-            DeltaType.DELETE -> for (line in orig.lines) {
-                diffRows.add(buildDiffRow(DiffRow.Tag.DELETE, line, ""))
+            DeltaType.DELETE -> {
+                for (line in orig.lines) {
+                    val row = buildDiffRow(DiffRow.Tag.DELETE, line, "")
+                    diffRows.add(row)
+                }
             }
-            else -> if (showInlineDiffs) {
-                diffRows.addAll(generateInlineDiffs(delta))
-            } else {
-                for (j in 0 until max(orig.size(), rev.size())) {
-                    diffRows.add(
-                        buildDiffRow(
-                            DiffRow.Tag.CHANGE,
-                            orig.lines.getOrElse(j) { "" },
-                            rev.lines.getOrElse(j) { "" }
+            else -> {
+                if (showInlineDiffs) {
+                    diffRows.addAll(generateInlineDiffs(delta))
+                } else {
+                    for (j in 0..<max(orig.size(), rev.size())) {
+                        val row = buildDiffRow(
+                            type = DiffRow.Tag.CHANGE,
+                            orgLine = orig.lines.getOrNull(j) ?: "",
+                            newLine = rev.lines.getOrNull(j) ?: "",
                         )
-                    )
+
+                        diffRows.add(row)
+                    }
                 }
             }
         }
+
         return orig.last() + 1
     }
 
@@ -226,69 +201,68 @@ public class DiffRowGenerator(
      */
     private fun decompressDeltas(delta: Delta<String>): List<Delta<String>> {
         if (delta.type == DeltaType.CHANGE && delta.source.size() != delta.target.size()) {
-            val deltas: MutableList<Delta<String>> = ArrayList()
-            val minSize: Int = min(delta.source.size(), delta.target.size())
-            val orig: Chunk<String> = delta.source
-            val rev: Chunk<String> = delta.target
+            val deltas = ArrayList<Delta<String>>()
+            val minSize = min(delta.source.size(), delta.target.size())
+            val orig = delta.source
+            val rev = delta.target
+
             deltas.add(
                 ChangeDelta(
                     Chunk(orig.position, orig.lines.subList(0, minSize)),
-                    Chunk(rev.position, rev.lines.subList(0, minSize))
+                    Chunk(rev.position, rev.lines.subList(0, minSize)),
                 )
             )
+
             if (orig.lines.size < rev.lines.size) {
                 deltas.add(
                     InsertDelta(
                         Chunk(orig.position + minSize, emptyList()),
-                        Chunk(rev.position + minSize, rev.lines.subList(minSize, rev.lines.size))
+                        Chunk(rev.position + minSize, rev.lines.subList(minSize, rev.lines.size)),
                     )
                 )
             } else {
                 deltas.add(
                     DeleteDelta(
                         Chunk(orig.position + minSize, orig.lines.subList(minSize, orig.lines.size)),
-                        Chunk(rev.position + minSize, emptyList())
+                        Chunk(rev.position + minSize, emptyList()),
                     )
                 )
             }
+
             return deltas
         }
+
         return listOf(delta)
     }
 
-    private fun buildDiffRow(type: DiffRow.Tag, orgline: String, newline: String): DiffRow {
-        return if (reportLinesUnchanged) {
-            DiffRow(type, orgline, newline)
-        } else {
-            var wrapOrg = preprocessLine(orgline)
-            if (DiffRow.Tag.DELETE == type) {
-                if (mergeOriginalRevised || showInlineDiffs) {
-                    wrapOrg = oldTag.invoke(type, true) + wrapOrg + oldTag.invoke(type, false)
-                }
-            }
-            var wrapNew = preprocessLine(newline)
-            if (DiffRow.Tag.INSERT == type) {
-                if (mergeOriginalRevised) {
-                    wrapOrg = newTag.invoke(type, true) + wrapNew + newTag.invoke(type, false)
-                } else if (showInlineDiffs) {
-                    wrapNew = newTag.invoke(type, true) + wrapNew + newTag.invoke(type, false)
-                }
-            }
-            DiffRow(type, wrapOrg, wrapNew)
+    private fun buildDiffRow(type: DiffRow.Tag, orgLine: String, newLine: String): DiffRow {
+        if (reportLinesUnchanged) {
+            return DiffRow(type, orgLine, newLine)
         }
+
+        var wrapOrg = preprocessLine(orgLine)
+
+        if (DiffRow.Tag.DELETE == type) {
+            if (mergeOriginalRevised || showInlineDiffs) {
+                wrapOrg = oldTag.generateOpen(type) + wrapOrg + oldTag.generateClose(type)
+            }
+        }
+
+        var wrapNew = preprocessLine(newLine)
+
+        if (DiffRow.Tag.INSERT == type) {
+            if (mergeOriginalRevised) {
+                wrapOrg = newTag.generateOpen(type) + wrapNew + newTag.generateClose(type)
+            } else if (showInlineDiffs) {
+                wrapNew = newTag.generateOpen(type) + wrapNew + newTag.generateClose(type)
+            }
+        }
+
+        return DiffRow(type, wrapOrg, wrapNew)
     }
 
-    private fun buildDiffRowWithoutNormalizing(type: DiffRow.Tag, orgline: String, newline: String): DiffRow {
-        return DiffRow(
-            type,
-            wrapText(orgline, columnWidth),
-            wrapText(newline, columnWidth)
-        )
-    }
-
-    internal fun normalizeLines(list: List<String>): List<String> {
-        return if (reportLinesUnchanged) list else list.map { lineNormalizer.invoke(it) }
-    }
+    private fun buildDiffRowWithoutNormalizing(type: DiffRow.Tag, oldLine: String, newLine: String): DiffRow =
+        DiffRow(type, wrapText(oldLine, columnWidth), wrapText(newLine, columnWidth))
 
     /**
      * Add the inline diffs for given delta
@@ -299,57 +273,55 @@ public class DiffRowGenerator(
     private fun generateInlineDiffs(delta: Delta<String>): List<DiffRow> {
         val orig = normalizeLines(delta.source.lines)
         val rev = normalizeLines(delta.target.lines)
-        val joinedOrig: String = orig.joinToString("\n")
-        val joinedRev: String = rev.joinToString("\n")
-        val origList = inlineDiffSplitter.invoke(joinedOrig).toMutableList()
-        val revList = inlineDiffSplitter.invoke(joinedRev).toMutableList()
-        // copying of `origList` and `revList` is needed because otherwise `wrapInTag` results in ConcurrentModificationException
-        val inlineDeltas: MutableList<Delta<String>> = diff(origList.toList(), revList.toList(), equalizer)
-            .deltas
-            .asReversed()
-            .toMutableList()
+        val joinedOrig = orig.joinToString("\n")
+        val joinedRev = rev.joinToString("\n")
+        val origList = inlineDiffSplitter.split(joinedOrig)
+        val revList = inlineDiffSplitter.split(joinedRev)
+
+        // Copying of `origList` and `revList` is needed because otherwise `wrapInTag` results in ConcurrentModificationException
+        val diff = diff(origList.toMutableList(), revList.toMutableList(), equalizer)
+        val inlineDeltas = diff.deltas.asReversed().toMutableList()
+
         for (inlineDelta in inlineDeltas) {
-            val inlineOrig: Chunk<String> = inlineDelta.source
-            val inlineRev: Chunk<String> = inlineDelta.target
+            val inlineOrig = inlineDelta.source
+            val inlineRev = inlineDelta.target
+
             when (inlineDelta.type) {
                 DeltaType.DELETE -> {
                     wrapInTag(
-                        origList,
-                        inlineOrig.position,
-                        inlineOrig.position + inlineOrig.size(),
-                        DiffRow.Tag.DELETE,
-                        oldTag,
-                        processDiffs,
-                        replaceOriginalLinefeedInChangesWithSpaces && mergeOriginalRevised
+                        sequence = origList,
+                        startPosition = inlineOrig.position,
+                        endPosition = inlineOrig.position + inlineOrig.size(),
+                        tag = DiffRow.Tag.DELETE,
+                        tagGenerator = oldTag,
+                        processDiffs = processDiffs,
+                        replaceLinefeedWithSpace = replaceOriginalLinefeedInChangesWithSpaces && mergeOriginalRevised,
                     )
                 }
                 DeltaType.INSERT -> {
                     if (mergeOriginalRevised) {
                         origList.addAll(
                             inlineOrig.position,
-                            revList.subList(
-                                inlineRev.position,
-                                inlineRev.position + inlineRev.size()
-                            )
+                            revList.subList(inlineRev.position, inlineRev.position + inlineRev.size()),
                         )
                         wrapInTag(
-                            origList,
-                            inlineOrig.position,
-                            inlineOrig.position + inlineRev.size(),
-                            DiffRow.Tag.INSERT,
-                            newTag,
-                            processDiffs,
-                            false
+                            sequence = origList,
+                            startPosition = inlineOrig.position,
+                            endPosition = inlineOrig.position + inlineRev.size(),
+                            tag = DiffRow.Tag.INSERT,
+                            tagGenerator = newTag,
+                            processDiffs = processDiffs,
+                            replaceLinefeedWithSpace = false,
                         )
                     } else {
                         wrapInTag(
-                            revList,
-                            inlineRev.position,
-                            inlineRev.position + inlineRev.size(),
-                            DiffRow.Tag.INSERT,
-                            newTag,
-                            processDiffs,
-                            false
+                            sequence = revList,
+                            startPosition = inlineRev.position,
+                            endPosition = inlineRev.position + inlineRev.size(),
+                            tag = DiffRow.Tag.INSERT,
+                            tagGenerator = newTag,
+                            processDiffs = processDiffs,
+                            replaceLinefeedWithSpace = false,
                         )
                     }
                 }
@@ -357,177 +329,143 @@ public class DiffRowGenerator(
                     if (mergeOriginalRevised) {
                         origList.addAll(
                             inlineOrig.position + inlineOrig.size(),
-                            revList.subList(
-                                inlineRev.position,
-                                inlineRev.position + inlineRev.size()
-                            )
+                            revList.subList(inlineRev.position, inlineRev.position + inlineRev.size()),
                         )
                         wrapInTag(
-                            origList,
-                            inlineOrig.position + inlineOrig.size(),
-                            inlineOrig.position + inlineOrig.size() + inlineRev.size(),
-                            DiffRow.Tag.CHANGE,
-                            newTag,
-                            processDiffs,
-                            false
+                            sequence = origList,
+                            startPosition = inlineOrig.position + inlineOrig.size(),
+                            endPosition = inlineOrig.position + inlineOrig.size() + inlineRev.size(),
+                            tag = DiffRow.Tag.CHANGE,
+                            tagGenerator = newTag,
+                            processDiffs = processDiffs,
+                            replaceLinefeedWithSpace = false,
                         )
                     } else {
                         wrapInTag(
-                            revList,
-                            inlineRev.position,
-                            inlineRev.position + inlineRev.size(),
-                            DiffRow.Tag.CHANGE,
-                            newTag,
-                            processDiffs,
-                            false
+                            sequence = revList,
+                            startPosition = inlineRev.position,
+                            endPosition = inlineRev.position + inlineRev.size(),
+                            tag = DiffRow.Tag.CHANGE,
+                            tagGenerator = newTag,
+                            processDiffs = processDiffs,
+                            replaceLinefeedWithSpace = false,
                         )
                     }
                     wrapInTag(
-                        origList,
-                        inlineOrig.position,
-                        inlineOrig.position + inlineOrig.size(),
-                        DiffRow.Tag.CHANGE,
-                        oldTag,
-                        processDiffs,
-                        replaceOriginalLinefeedInChangesWithSpaces && mergeOriginalRevised
+                        sequence = origList,
+                        startPosition = inlineOrig.position,
+                        endPosition = inlineOrig.position + inlineOrig.size(),
+                        tag = DiffRow.Tag.CHANGE,
+                        tagGenerator = oldTag,
+                        processDiffs = processDiffs,
+                        replaceLinefeedWithSpace = replaceOriginalLinefeedInChangesWithSpaces && mergeOriginalRevised,
                     )
                 }
                 else -> error("Unexpected delta type ${inlineDelta.type}")
             }
         }
+
         val origResult = StringBuilder()
         val revResult = StringBuilder()
+
         for (character in origList) {
             origResult.append(character)
         }
+
         for (character in revList) {
             revResult.append(character)
         }
-        // note: dropLastWhile here arose from compatibility with Java: Java's `split` discard trailing empty string by default
-        val original: List<String> = origResult.toString().split("\n").dropLastWhile { it.isEmpty() }
-        val revised: List<String> = revResult.toString().split("\n").dropLastWhile { it.isEmpty() }
-        val diffRows: MutableList<DiffRow> = ArrayList()
-        for (j in 0 until max(original.size, revised.size)) {
+
+        // Note: dropLastWhile here arose from compatibility with Java: Java's `split` discard
+        //  trailing empty string by default
+        val original = origResult.split("\n").dropLastWhile(String::isEmpty)
+        val revised = revResult.split("\n").dropLastWhile(String::isEmpty)
+        val diffRows = ArrayList<DiffRow>()
+
+        for (j in 0..<max(original.size, revised.size)) {
             diffRows.add(
                 buildDiffRowWithoutNormalizing(
-                    DiffRow.Tag.CHANGE,
-                    original.getOrElse(j) { "" },
-                    revised.getOrElse(j) { "" }
+                    type = DiffRow.Tag.CHANGE,
+                    oldLine = original.getOrNull(j) ?: "",
+                    newLine = revised.getOrNull(j) ?: "",
                 )
             )
         }
+
         return diffRows
     }
 
     private fun preprocessLine(line: String): String {
-        return if (columnWidth == 0) {
-            lineNormalizer.invoke(line)
-        } else {
-            wrapText(lineNormalizer.invoke(line), columnWidth)
-        }
+        val normalized = lineNormalizer.normalize(line)
+        return if (columnWidth == 0) normalized else wrapText(normalized, columnWidth)
     }
 
-    public companion object {
-        internal val LINE_NORMALIZER_FOR_HTML: (String) -> String = { normalize(it) }
+    /**
+     * Wrap the elements in the sequence with the given tag
+     *
+     * @param startPosition The position from which tag should start.
+     *   The counting start from a zero.
+     * @param endPosition The position before which tag should be closed.
+     * @param tagGenerator The tag generator
+     */
+    @Suppress("LongParameterList", "ComplexMethod", "LoopWithTooManyJumpStatements", "NestedBlockDepth")
+    private fun wrapInTag(
+        sequence: MutableList<String>,
+        startPosition: Int,
+        endPosition: Int,
+        tag: DiffRow.Tag,
+        tagGenerator: DiffTagGenerator,
+        processDiffs: DiffLineProcessor?,
+        replaceLinefeedWithSpace: Boolean,
+    ): List<String> {
+        var endPos = endPosition
 
-        /**
-         * Splitting lines by character to achieve char by char diff checking.
-         */
-        internal val SPLITTER_BY_CHARACTER = { line: String ->
-            val list: MutableList<String> = ArrayList(line.length)
-            for (character in line.toCharArray()) {
-                list.add(character.toString())
-            }
-            list.toList()
-        }
-        internal val SPLIT_BY_WORD_PATTERN = Regex("\\s+|[,.\\[\\](){}/\\\\*+\\-#]")
-
-        /**
-         * Splitting lines by word to achieve word by word diff checking.
-         */
-        internal val SPLITTER_BY_WORD = { line: String ->
-            splitStringPreserveDelimiter(
-                line,
-                SPLIT_BY_WORD_PATTERN
-            )
-        }
-
-        internal fun splitStringPreserveDelimiter(str: String?, splitPattern: Regex): List<String> {
-            val list: MutableList<String> = mutableListOf()
-            if (str != null) {
-                val matchResults = splitPattern.findAll(str)
-                var pos = 0
-                for (matchResult in matchResults) {
-                    if (pos < matchResult.range.first) {
-                        list.add(str.substring(pos, matchResult.range.first))
-                    }
-                    list.add(matchResult.value)
-                    pos = matchResult.range.last + 1
-                }
-                if (pos < str.length) {
-                    list.add(str.substring(pos))
-                }
-            }
-            return list
-        }
-
-        /**
-         * Wrap the elements in the sequence with the given tag
-         *
-         * @param startPosition the position from which tag should start. The
-         * counting start from a zero.
-         * @param endPosition the position before which tag should should be closed.
-         * @param tagGenerator the tag generator
-         */
-        @Suppress("LongParameterList", "ComplexMethod", "LoopWithTooManyJumpStatements", "NestedBlockDepth")
-        internal fun wrapInTag(
-            sequence: MutableList<String>,
-            startPosition: Int,
-            endPosition: Int,
-            tag: DiffRow.Tag,
-            tagGenerator: (DiffRow.Tag, Boolean) -> String,
-            processDiffs: ((String) -> String)?,
-            replaceLinefeedWithSpace: Boolean,
-        ): MutableList<String> {
-            var endPos = endPosition
-            while (endPos >= startPosition) {
-                // search position for end tag
-                while (endPos > startPosition) {
-                    if ("\n" != sequence[endPos - 1]) {
-                        break
-                    } else if (replaceLinefeedWithSpace) {
-                        sequence[endPos - 1] = " "
-                        break
-                    }
-                    endPos--
-                }
-                if (endPos == startPosition) {
+        while (endPos >= startPosition) {
+            // Search position for end tag
+            while (endPos > startPosition) {
+                if ("\n" != sequence[endPos - 1]) {
+                    break
+                } else if (replaceLinefeedWithSpace) {
+                    sequence[endPos - 1] = " "
                     break
                 }
-                sequence.add(endPos, tagGenerator.invoke(tag, false))
-                if (processDiffs != null) {
-                    sequence[endPos - 1] = processDiffs.invoke(sequence[endPos - 1])
-                }
-                endPos--
 
-                // search position for end tag
-                while (endPos > startPosition) {
-                    if ("\n" == sequence[endPos - 1]) {
-                        if (replaceLinefeedWithSpace) {
-                            sequence[endPos - 1] = " "
-                        } else {
-                            break
-                        }
-                    }
-                    if (processDiffs != null) {
-                        sequence[endPos - 1] = processDiffs.invoke(sequence[endPos - 1])
-                    }
-                    endPos--
-                }
-                sequence.add(endPos, tagGenerator.invoke(tag, true))
                 endPos--
             }
-            return sequence
+
+            if (endPos == startPosition) {
+                break
+            }
+
+            sequence.add(endPos, tagGenerator.generateClose(tag))
+
+            if (processDiffs != null) {
+                sequence[endPos - 1] = processDiffs.process(sequence[endPos - 1])
+            }
+
+            endPos--
+
+            // Search position for end tag
+            while (endPos > startPosition) {
+                if ("\n" == sequence[endPos - 1]) {
+                    if (replaceLinefeedWithSpace) {
+                        sequence[endPos - 1] = " "
+                    } else {
+                        break
+                    }
+                }
+
+                if (processDiffs != null) {
+                    sequence[endPos - 1] = processDiffs.process(sequence[endPos - 1])
+                }
+
+                endPos--
+            }
+
+            sequence.add(endPos, tagGenerator.generateOpen(tag))
+            endPos--
         }
+
+        return sequence
     }
 }
