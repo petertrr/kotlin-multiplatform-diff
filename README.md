@@ -13,10 +13,11 @@ All credit for the implementation goes to original authors.
 
 ## Features
 
-All features from version `4.10` of the original library are present, except for:
+All features from version `4.12` of the original library are present, except for:
 
+- fuzzy patches
 - unified diff, which heavily uses file read/write and therefore needs a more complicated rewrite
-- diff-utils-jgit, which uses JVM-only jgit library
+- diff-utils-jgit, which uses JVM-only JGit
 
 Please refer to the original guides for more information.
 
@@ -29,8 +30,10 @@ Currently, artifacts for the following platforms are supported:
 - WebAssembly (JS and WASI)
 - Native
 
-The supported Native targets are (following the Kotlin/Native [target support guidelines](https://kotlinlang.org/docs/native-target-support.html)):
+The supported Native targets are (following the Kotlin/Native [target support guidelines][1]):
 
 | Tier 1   | Tier 2   | Tier 3   |
 |:---------|:---------|:---------|
 | macosX64 | linuxX64 | mingwX64 |
+
+[1]: https://kotlinlang.org/docs/native-target-support.html
