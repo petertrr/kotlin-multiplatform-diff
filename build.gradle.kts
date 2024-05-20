@@ -32,15 +32,17 @@ kotlin {
 
     jvm {
         compilations.configureEach {
-            compilerOptions.configure {
-                // Minimum bytecode level is 52
-                jvmTarget = JvmTarget.JVM_1_8
+            compileTaskProvider.configure {
+                compilerOptions {
+                    // Minimum bytecode level is 52
+                    jvmTarget = JvmTarget.JVM_1_8
 
-                // Output interfaces with default methods
-                freeCompilerArgs.addAll(
-                    "-Xjvm-default=all",      // Output interfaces with default methods
-                    "-Xno-param-assertions",  // Remove Intrinsics.checkNotNullParameter
-                )
+                    // Output interfaces with default methods
+                    freeCompilerArgs.addAll(
+                        "-Xjvm-default=all",      // Output interfaces with default methods
+                        "-Xno-param-assertions",  // Remove Intrinsics.checkNotNullParameter
+                    )
+                }
             }
         }
 
@@ -72,15 +74,11 @@ kotlin {
     wasmJs {
         browser()
         nodejs()
-        applyBinaryen()
     }
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmWasi {
         nodejs()
-
-        // Available since 2.0
-        // applyBinaryen()
     }
 
     linuxX64()
