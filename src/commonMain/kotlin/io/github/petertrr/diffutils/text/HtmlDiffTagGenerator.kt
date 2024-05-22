@@ -15,9 +15,9 @@
  */
 package io.github.petertrr.diffutils.text
 
-internal class NewDiffTagGenerator : DiffTagGenerator {
+internal class HtmlDiffTagGenerator(private val className: String) : DiffTagGenerator {
     override fun generateOpen(tag: DiffRow.Tag): String =
-        "<span class=\"editNewInline\">"
+        "<span class=\"$className\">"
 
     override fun generateClose(tag: DiffRow.Tag): String =
         "</span>"

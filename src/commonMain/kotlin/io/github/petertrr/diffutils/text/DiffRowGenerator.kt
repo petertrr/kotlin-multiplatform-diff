@@ -29,6 +29,7 @@ import io.github.petertrr.diffutils.patch.Delta
 import io.github.petertrr.diffutils.patch.DeltaType
 import io.github.petertrr.diffutils.patch.InsertDelta
 import io.github.petertrr.diffutils.patch.Patch
+import io.github.petertrr.diffutils.wrapText
 import kotlin.math.max
 import kotlin.math.min
 
@@ -84,8 +85,8 @@ public class DiffRowGenerator(
     inlineDiffByWord: Boolean = false,
     private val inlineDiffSplitter: DiffSplitter = if (inlineDiffByWord) WordDiffSplitter() else CharDiffSplitter(),
     private val mergeOriginalRevised: Boolean = false,
-    private val newTag: DiffTagGenerator = NewDiffTagGenerator(),
-    private val oldTag: DiffTagGenerator = OldDiffTagGenerator(),
+    private val newTag: DiffTagGenerator = HtmlDiffTagGenerator("editNewInline"),
+    private val oldTag: DiffTagGenerator = HtmlDiffTagGenerator("editOldInline"),
     private val reportLinesUnchanged: Boolean = false,
     private val lineNormalizer: DiffLineNormalizer = HtmlLineNormalizer(),
     private val processDiffs: DiffLineProcessor? = null,
@@ -138,8 +139,8 @@ public class DiffRowGenerator(
         return diffRows
     }
 
-    internal fun normalizeLines(list: List<String>): List<String> =
-        if (reportLinesUnchanged) list else list.map { lineNormalizer.normalize(it) }
+    private fun normalizeLines(list: List<String>): List<String> =
+        if (reportLinesUnchanged) list else list.map(lineNormalizer::normalize)
 
     /**
      * Transforms one patch delta into a [DiffRow] object.
@@ -262,7 +263,7 @@ public class DiffRowGenerator(
     }
 
     private fun buildDiffRowWithoutNormalizing(type: DiffRow.Tag, oldLine: String, newLine: String): DiffRow =
-        DiffRow(type, wrapText(oldLine, columnWidth), wrapText(newLine, columnWidth))
+        DiffRow(type, oldLine.wrapText(columnWidth), newLine.wrapText(columnWidth))
 
     /**
      * Add the inline diffs for given delta
@@ -364,8 +365,8 @@ public class DiffRowGenerator(
             }
         }
 
-        val origResult = StringBuilder()
-        val revResult = StringBuilder()
+        val origResult = StringBuilder(origList.size)
+        val revResult = StringBuilder(revList.size)
 
         for (character in origList) {
             origResult.append(character)
@@ -379,9 +380,11 @@ public class DiffRowGenerator(
         //  trailing empty string by default
         val original = origResult.split("\n").dropLastWhile(String::isEmpty)
         val revised = revResult.split("\n").dropLastWhile(String::isEmpty)
-        val diffRows = ArrayList<DiffRow>()
 
-        for (j in 0..<max(original.size, revised.size)) {
+        val size = max(original.size, revised.size)
+        val diffRows = ArrayList<DiffRow>(size)
+
+        for (j in 0..<size) {
             diffRows.add(
                 buildDiffRowWithoutNormalizing(
                     type = DiffRow.Tag.CHANGE,
@@ -396,7 +399,7 @@ public class DiffRowGenerator(
 
     private fun preprocessLine(line: String): String {
         val normalized = lineNormalizer.normalize(line)
-        return if (columnWidth == 0) normalized else wrapText(normalized, columnWidth)
+        return if (columnWidth == 0) normalized else normalized.wrapText(columnWidth)
     }
 
     /**

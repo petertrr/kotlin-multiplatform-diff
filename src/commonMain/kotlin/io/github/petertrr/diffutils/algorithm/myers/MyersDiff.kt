@@ -58,7 +58,7 @@ public class MyersDiff<T>(private val equalizer: DiffEqualizer<T> = EqualsDiffEq
         val max = origSize + revSize + 1
         val size = 1 + 2 * max
         val middle = size / 2
-        val diagonal: Array<PathNode?> = arrayOfNulls(size)
+        val diagonal = arrayOfNulls<PathNode>(size)
         diagonal[middle + 1] = PathNode(0, -1, snake = true, bootstrap = true, prev = null)
 
         for (d in 0..<max) {

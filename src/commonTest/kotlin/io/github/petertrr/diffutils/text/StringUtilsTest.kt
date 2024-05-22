@@ -18,6 +18,9 @@
  */
 package io.github.petertrr.diffutils.text
 
+import io.github.petertrr.diffutils.htmlEntities
+import io.github.petertrr.diffutils.normalize
+import io.github.petertrr.diffutils.wrapText
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -27,8 +30,8 @@ class StringUtilsTest {
      * Test of htmlEntities method, of class StringUtils.
      */
     @Test
-    fun testHtmlEntites() {
-        assertEquals("&lt;test&gt;", htmlEntities("<test>"))
+    fun testHtmlEntities() {
+        assertEquals("&lt;test&gt;", "<test>".htmlEntities())
     }
 
     /**
@@ -36,7 +39,7 @@ class StringUtilsTest {
      */
     @Test
     fun testNormalize_String() {
-        assertEquals("    test", normalize("\ttest"))
+        assertEquals("    test", "\ttest".normalize())
     }
 
     /**
@@ -44,15 +47,15 @@ class StringUtilsTest {
      */
     @Test
     fun testWrapText_String_int() {
-        assertEquals("te<br/>st", wrapText("test", 2))
-        assertEquals("tes<br/>t", wrapText("test", 3))
-        assertEquals("test", wrapText("test", 10))
-        assertEquals(".\uD800\uDC01<br/>.", wrapText(".\uD800\uDC01.", 2))
-        assertEquals("..<br/>\uD800\uDC01", wrapText("..\uD800\uDC01", 3))
+        assertEquals("te<br/>st", "test".wrapText(2))
+        assertEquals("tes<br/>t", "test".wrapText(3))
+        assertEquals("test", "test".wrapText(10))
+        assertEquals(".\uD800\uDC01<br/>.", ".\uD800\uDC01.".wrapText(2))
+        assertEquals("..<br/>\uD800\uDC01", "..\uD800\uDC01".wrapText(3))
     }
 
     @Test
     fun testWrapText_String_int_zero() {
-        assertFailsWith<IllegalArgumentException> { wrapText("test", -1) }
+        assertFailsWith<IllegalArgumentException> { "test".wrapText(-1) }
     }
 }

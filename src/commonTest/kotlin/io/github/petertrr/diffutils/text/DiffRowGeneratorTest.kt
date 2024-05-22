@@ -40,8 +40,8 @@ class DiffRowGeneratorTest {
      */
     @Test
     fun testNormalize_List() {
-        val generator = DiffRowGenerator()
-        assertEquals(listOf("    test"), generator.normalizeLines(listOf("\ttest")))
+        val normalizer = HtmlLineNormalizer()
+        assertEquals("    test", normalizer.normalize("\ttest"))
     }
 
     @Test

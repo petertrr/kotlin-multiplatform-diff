@@ -50,7 +50,6 @@ public class MyersDiffWithLinearSpace<T>(
         progress: DiffAlgorithmListener,
     ) {
         progress.diffStep((end1 - start1) / 2 + (end2 - start2) / 2, -1)
-
         val middle = getMiddleSnake(data, start1, end1, start2, end2)
 
         if (middle == null ||
