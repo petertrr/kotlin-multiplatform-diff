@@ -58,8 +58,7 @@ import kotlin.math.min
  *   Default: `false`
  * @param newTag Generator for New-Text-Tags
  * @param oldTag Generator for Old-Text-Tags
- * @param reportLinesUnchanged Give the original old and new text lines to [DiffRow]
- *   without any additional processing and without any tags to highlight the change.
+ * @param reportLinesUnchanged Report all lines without markup on the old or new text.
  *   Default: `false`
  * @param lineNormalizer By default, [DiffRowGenerator] preprocesses lines for HTML output.
  *   Tabs and special HTML characters like "&lt;" are replaced with its encoded value.
