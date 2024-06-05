@@ -62,13 +62,11 @@ public class MyersDiffWithLinearSpace<T>(
 
             while (i < end1 || j < end2) {
                 if (i < end1 && j < end2 && equalizer.test(data.source[i], data.target[j])) {
-                    // script.append(new KeepCommand<>(left.charAt(i)));
                     ++i
                     ++j
                 } else {
                     // TODO: compress these commands
                     if (end1 - start1 > end2 - start2) {
-                        // script.append(new DeleteCommand<>(left.charAt(i)));
                         if (data.script.isEmpty() ||
                             data.script[data.script.size - 1].endOriginal != i ||
                             data.script[data.script.size - 1].deltaType != DeltaType.DELETE
