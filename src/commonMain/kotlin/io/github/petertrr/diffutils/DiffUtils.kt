@@ -63,26 +63,6 @@ public fun diff(
     )
 
 /**
- * Computes the difference between the source and target list of elements using the Myers algorithm.
- *
- * @param source The original elements
- * @param target The target elements
- * @param equalizer The equalizer to replace the default compare algorithm [Any.equals].
- *   If `null`, the default equalizer of the default algorithm is used.
- * @return The patch describing the difference between the source and target sequences
- */
-public fun <T> diff(
-    source: List<T>,
-    target: List<T>,
-    equalizer: DiffEqualizer<T>,
-): Patch<T> =
-    diff(
-        source = source,
-        target = target,
-        algorithm = MyersDiff(equalizer),
-    )
-
-/**
  * Computes the difference between the original and target list of elements.
  *
  * By default, uses the Meyers algorithm.
