@@ -278,9 +278,8 @@ public class DiffRowGenerator(
         val origList = inlineDiffSplitter.split(joinedOrig)
         val revList = inlineDiffSplitter.split(joinedRev)
 
-        // Copying of `origList` and `revList` is needed because otherwise `wrapInTag` results in ConcurrentModificationException
-        val diff = diff(origList.toMutableList(), revList.toMutableList(), equalizer)
-        val inlineDeltas = diff.deltas.asReversed().toMutableList()
+        val diff = diff(origList, revList, equalizer)
+        val inlineDeltas = diff.deltas.reversed()
 
         for (inlineDelta in inlineDeltas) {
             val inlineOrig = inlineDelta.source
