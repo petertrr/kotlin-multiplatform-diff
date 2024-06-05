@@ -18,9 +18,10 @@
  */
 package io.github.petertrr.diffutils.text
 
-import io.github.petertrr.diffutils.algorithm.DiffEqualizer
+import io.github.petertrr.diffutils.algorithm.DiffAlgorithm
 import io.github.petertrr.diffutils.algorithm.EqualsDiffEqualizer
 import io.github.petertrr.diffutils.algorithm.IgnoreWsStringDiffEqualizer
+import io.github.petertrr.diffutils.algorithm.myers.MyersDiff
 import io.github.petertrr.diffutils.diff
 import io.github.petertrr.diffutils.patch.ChangeDelta
 import io.github.petertrr.diffutils.patch.Chunk
@@ -42,7 +43,7 @@ import kotlin.math.min
  * @param columnWidth Set the column width of generated lines of original and revised texts.
  *   Making it < 0 doesn't make any sense.
  * @param ignoreWhiteSpaces Ignore white spaces in generating diff rows or not
- * @param equalizer Provide an equalizer for diff processing
+ * @param algorithm The diffing algorithm to use. By default [MyersDiff].
  * @param inlineDiffByWord Per default each character is separately processed.
  *   Setting this parameter to `true` introduces processing by word, which does
  *   not deliver in word changes. Therefore, the whole word will be tagged as changed:
@@ -80,9 +81,9 @@ import kotlin.math.min
 public class DiffRowGenerator(
     private val columnWidth: Int = 80,
     private val ignoreWhiteSpaces: Boolean = false,
-    private var equalizer: DiffEqualizer<String> = if (ignoreWhiteSpaces) IgnoreWsStringDiffEqualizer() else EqualsDiffEqualizer(),
+    private val algorithm: DiffAlgorithm<String> = defaultAlgorithm(ignoreWhiteSpaces),
     inlineDiffByWord: Boolean = false,
-    private val inlineDiffSplitter: DiffSplitter = if (inlineDiffByWord) WordDiffSplitter() else CharDiffSplitter(),
+    private val inlineDiffSplitter: DiffSplitter = defaultSplitter(inlineDiffByWord),
     private val mergeOriginalRevised: Boolean = false,
     private val newTag: DiffTagGenerator = HtmlDiffTagGenerator("editNewInline"),
     private val oldTag: DiffTagGenerator = HtmlDiffTagGenerator("editOldInline"),
@@ -102,7 +103,7 @@ public class DiffRowGenerator(
      * @return The [DiffRow]s between original and revised texts
      */
     public fun generateDiffRows(original: List<String>, revised: List<String>): List<DiffRow> =
-        generateDiffRows(original, diff(original, revised, equalizer))
+        generateDiffRows(original, diff(original, revised, algorithm))
 
     /**
      * Generates the [DiffRow]s describing the difference between original and
@@ -278,7 +279,7 @@ public class DiffRowGenerator(
         val origList = inlineDiffSplitter.split(joinedOrig)
         val revList = inlineDiffSplitter.split(joinedRev)
 
-        val diff = diff(origList, revList, equalizer)
+        val diff = diff(origList, revList, algorithm)
         val inlineDeltas = diff.deltas.reversed()
 
         for (inlineDelta in inlineDeltas) {
@@ -470,3 +471,11 @@ public class DiffRowGenerator(
         return sequence
     }
 }
+
+private fun defaultAlgorithm(ignoreWhiteSpaces: Boolean): DiffAlgorithm<String> {
+    val equalizer = if (ignoreWhiteSpaces) IgnoreWsStringDiffEqualizer() else EqualsDiffEqualizer()
+    return MyersDiff(equalizer)
+}
+
+private fun defaultSplitter(inlineDiffByWord: Boolean): DiffSplitter =
+    if (inlineDiffByWord) WordDiffSplitter() else CharDiffSplitter()
