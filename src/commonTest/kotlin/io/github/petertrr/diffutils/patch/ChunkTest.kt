@@ -1,6 +1,6 @@
 /*
- * Copyright 2021 Peter Trifanov.
- * Copyright 2018 java-diff-utils.
+ * Copyright 2024 Peter Trifanov.
+ * Copyright 2021 java-diff-utils.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,21 +18,21 @@
  */
 package io.github.petertrr.diffutils.patch
 
-public data class EqualDelta<T>(
-    override val source: Chunk<T>,
-    override val target: Chunk<T>,
-) : Delta<T>(DeltaType.EQUAL) {
-    override fun applyTo(target: MutableList<T>) {
-        // Noop
+import io.github.petertrr.diffutils.patch.VerifyChunk.CONTENT_DOES_NOT_MATCH_TARGET
+import io.github.petertrr.diffutils.patch.VerifyChunk.OK
+import kotlin.test.Test
+import kotlin.test.assertEquals
+
+class ChunkTest {
+    @Test
+    fun verifyChunk() {
+        val chunk = Chunk(7, "test".toChars())
+
+        // Normal check
+        assertEquals(OK, chunk.verifyChunk("prefix test suffix".toChars()))
+        assertEquals(CONTENT_DOES_NOT_MATCH_TARGET, chunk.verifyChunk("prefix  es  suffix".toChars()))
     }
 
-    override fun restore(target: MutableList<T>) {
-        // Noop
-    }
-
-    override fun withChunks(original: Chunk<T>, revised: Chunk<T>): Delta<T> =
-        EqualDelta(original, revised)
-
-    override fun toString(): String =
-        "[EqualDelta, position: ${source.position}, lines: ${source.lines}]"
+    private fun String.toChars(): List<Char> =
+        toCharArray().toList()
 }

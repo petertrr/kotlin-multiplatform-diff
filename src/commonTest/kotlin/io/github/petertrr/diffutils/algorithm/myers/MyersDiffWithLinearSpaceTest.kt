@@ -1,6 +1,6 @@
 /*
- * Copyright 2021 Peter Trifanov.
- * Copyright 2017 java-diff-utils.
+ * Copyright 2024 Peter Trifanov.
+ * Copyright 2021 java-diff-utils.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,22 +19,28 @@
 package io.github.petertrr.diffutils.algorithm.myers
 
 import io.github.petertrr.diffutils.algorithm.DiffAlgorithmListener
+import io.github.petertrr.diffutils.diff
 import io.github.petertrr.diffutils.patch.Patch
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.time.measureTimedValue
 
-class MyersDiffTest {
+class MyersDiffWithLinearSpaceTest {
     @Test
     fun testDiffMyersExample1Forward() {
         val original = listOf("A", "B", "C", "A", "B", "B", "A")
         val revised = listOf("C", "B", "A", "B", "A", "C")
-        val patch = Patch.generate(original, revised, MyersDiff<String>().computeDiff(original, revised))
+        val changes = MyersDiffWithLinearSpace<String>().computeDiff(original, revised)
+        val patch = Patch.generate(original, revised, changes)
+        println(patch)
 
-        assertEquals(4, patch.deltas.size)
+        assertEquals(5, patch.deltas.size)
         assertEquals(
             "Patch{deltas=[" +
-                    "[DeleteDelta, position: 0, lines: [A, B]], " +
-                    "[InsertDelta, position: 3, lines: [B]], " +
+                    "[InsertDelta, position: 0, lines: [C]], " +
+                    "[DeleteDelta, position: 0, lines: [A]], " +
+                    "[DeleteDelta, position: 2, lines: [C]], " +
                     "[DeleteDelta, position: 5, lines: [B]], " +
                     "[InsertDelta, position: 7, lines: [C]]" +
                     "]}",
@@ -47,28 +53,34 @@ class MyersDiffTest {
         val original = listOf("A", "B", "C", "A", "B", "B", "A")
         val revised = listOf("C", "B", "A", "B", "A", "C")
         val logData = ArrayList<String>()
+        val progress = object : DiffAlgorithmListener {
+            override fun diffStart() {
+                logData.add("start")
+            }
+
+            override fun diffStep(value: Int, max: Int) {
+                logData.add("$value - $max")
+            }
+
+            override fun diffEnd() {
+                logData.add("end")
+            }
+        }
+
         val patch = Patch.generate(
-            original, revised,
-            MyersDiff<String>().computeDiff(original, revised, object : DiffAlgorithmListener {
-                override fun diffStart() {
-                    logData.add("start")
-                }
-
-                override fun diffStep(value: Int, max: Int) {
-                    logData.add("$value - $max")
-                }
-
-                override fun diffEnd() {
-                    logData.add("end")
-                }
-            })
+            original = original,
+            revised = revised,
+            changes = MyersDiffWithLinearSpace<String>().computeDiff(original, revised, progress),
         )
 
-        assertEquals(4, patch.deltas.size)
+        println(patch)
+
+        assertEquals(5, patch.deltas.size)
         assertEquals(
             "Patch{deltas=[" +
-                    "[DeleteDelta, position: 0, lines: [A, B]], " +
-                    "[InsertDelta, position: 3, lines: [B]], " +
+                    "[InsertDelta, position: 0, lines: [C]], " +
+                    "[DeleteDelta, position: 0, lines: [A]], " +
+                    "[DeleteDelta, position: 2, lines: [C]], " +
                     "[DeleteDelta, position: 5, lines: [B]], " +
                     "[InsertDelta, position: 7, lines: [C]]" +
                     "]}",
@@ -76,6 +88,21 @@ class MyersDiffTest {
         )
 
         println(logData)
-        assertEquals(8, logData.size)
+        assertEquals(11, logData.size)
+    }
+
+    @Test
+    @Ignore
+    fun testPerformanceProblemsIssue124() {
+        val old = listOf("abcd")
+        val new = (0..<90000)
+            .map(Int::toString)
+            .toList()
+
+        val (patch, duration) = measureTimedValue {
+            diff(old, new, MyersDiffWithLinearSpace())
+        }
+
+        println("Finished in ${duration.inWholeMilliseconds}ms and resulted ${patch.deltas.size} deltas")
     }
 }

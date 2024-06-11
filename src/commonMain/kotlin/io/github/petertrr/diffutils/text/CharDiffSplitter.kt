@@ -1,6 +1,5 @@
 /*
- * Copyright 2021 Peter Trifanov.
- * Copyright 2017 java-diff-utils.
+ * Copyright 2024 Peter Trifanov.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +12,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * This file has been modified by Peter Trifanov when porting from Java to Kotlin.
  */
-package io.github.petertrr.diffutils.algorithm
+package io.github.petertrr.diffutils.text
 
-import io.github.petertrr.diffutils.patch.DeltaType
-import kotlin.jvm.JvmField
+internal class CharDiffSplitter : DiffSplitter {
+    override fun split(line: String): MutableList<String> {
+        val list = ArrayList<String>(line.length)
 
-public data class Change(
-    @JvmField val deltaType: DeltaType,
-    @JvmField val startOriginal: Int,
-    @JvmField val endOriginal: Int,
-    @JvmField val startRevised: Int,
-    @JvmField val endRevised: Int,
-)
+        for (character in line.toCharArray()) {
+            list.add(character.toString())
+        }
+
+        return list
+    }
+}

@@ -15,3 +15,12 @@ formatting:
     active: false
   TrailingCommaOnDeclarationSite:
     active: true
+complexity:
+  ComplexCondition:
+    active: false
+  CyclomaticComplexMethod:
+    active: false
+  NestedBlockDepth:
+    active: false
+  LongParameterList:
+    functionThreshold: 7

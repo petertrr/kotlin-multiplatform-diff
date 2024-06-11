@@ -50,4 +50,7 @@ public data class ChangeDelta<T>(
 
     override fun withChunks(original: Chunk<T>, revised: Chunk<T>): Delta<T> =
         ChangeDelta(original, revised)
+
+    override fun toString(): String =
+        "[ChangeDelta, position: ${source.position}, lines: ${source.lines} to ${target.lines}]"
 }

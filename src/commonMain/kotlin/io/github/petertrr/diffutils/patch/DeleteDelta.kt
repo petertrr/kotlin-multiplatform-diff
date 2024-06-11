@@ -41,4 +41,7 @@ public data class DeleteDelta<T>(
 
     override fun withChunks(original: Chunk<T>, revised: Chunk<T>): Delta<T> =
         DeleteDelta(original, revised)
+
+    override fun toString(): String =
+        "[DeleteDelta, position: ${source.position}, lines: ${source.lines}]"
 }

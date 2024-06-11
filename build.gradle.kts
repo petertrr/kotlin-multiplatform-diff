@@ -7,6 +7,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 
 plugins {
     kotlin("multiplatform")
@@ -31,12 +32,17 @@ kotlin {
 
     jvm {
         compilations.configureEach {
-            compilerOptions.configure {
-                // Minimum bytecode level is 52
-                jvmTarget = JvmTarget.JVM_1_8
+            compileTaskProvider.configure {
+                compilerOptions {
+                    // Minimum bytecode level is 52
+                    jvmTarget = JvmTarget.JVM_1_8
 
-                // Output interfaces with default methods
-                freeCompilerArgs.add("-Xjvm-default=all")
+                    // Output interfaces with default methods
+                    freeCompilerArgs.addAll(
+                        "-Xjvm-default=all",      // Output interfaces with default methods
+                        "-Xno-param-assertions",  // Remove Intrinsics.checkNotNullParameter
+                    )
+                }
             }
         }
 
@@ -48,23 +54,31 @@ kotlin {
     }
 
     js {
-        browser()
-        nodejs()
+        val testConfig: (KotlinJsTest).() -> Unit = {
+            useMocha {
+                // Override default 2s timeout
+                timeout = "120s"
+            }
+        }
+
+        browser {
+            testTask(testConfig)
+        }
+
+        nodejs {
+            testTask(testConfig)
+        }
     }
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser()
         nodejs()
-        applyBinaryen()
     }
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmWasi {
         nodejs()
-
-        // Available since 2.0
-        // applyBinaryen()
     }
 
     linuxX64()

@@ -19,6 +19,8 @@
 package io.github.petertrr.diffutils.patch
 
 import io.github.petertrr.diffutils.algorithm.Change
+import kotlin.jvm.JvmOverloads
+import kotlin.jvm.JvmStatic
 
 /**
  * Describes the patch holding all deltas between the original and revised texts.
@@ -87,17 +89,13 @@ public class Patch<T>(private var conflictOutput: ConflictOutput<T> = ExceptionP
     }
 
     public companion object {
-        public fun <T> generate(original: List<T>, revised: List<T>, changes: List<Change>): Patch<T> =
-            generate(original, revised, changes, false)
-
-        private fun <T> buildChunk(start: Int, end: Int, data: List<T>): Chunk<T> =
-            Chunk(start, data.subList(start, end))
-
+        @JvmStatic
+        @JvmOverloads
         public fun <T> generate(
             original: List<T>,
             revised: List<T>,
             changes: List<Change>,
-            includeEquals: Boolean,
+            includeEquals: Boolean = false,
         ): Patch<T> {
             val patch = Patch<T>()
             var startOriginal = 0
@@ -144,5 +142,8 @@ public class Patch<T>(private var conflictOutput: ConflictOutput<T> = ExceptionP
 
             return patch
         }
+
+        private fun <T> buildChunk(start: Int, end: Int, data: List<T>): Chunk<T> =
+            Chunk(start, data.slice(start..<end))
     }
 }

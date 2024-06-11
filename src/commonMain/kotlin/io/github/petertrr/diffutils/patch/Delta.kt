@@ -29,7 +29,7 @@ public sealed class Delta<T>(public val type: DeltaType) {
      * Verify the chunk of this delta, to fit the target.
      */
     protected open fun verifyChunkToFitTarget(target: List<T>): VerifyChunk =
-        source.verify(target)
+        source.verifyChunk(target)
 
     public open fun verifyAndApplyTo(target: MutableList<T>): VerifyChunk {
         val verify = verifyChunkToFitTarget(target)

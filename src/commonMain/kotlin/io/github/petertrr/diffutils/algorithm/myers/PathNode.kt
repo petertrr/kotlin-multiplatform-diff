@@ -18,6 +18,8 @@
  */
 package io.github.petertrr.diffutils.algorithm.myers
 
+import kotlin.jvm.JvmField
+
 /**
  * A node in a diffpath.
  *
@@ -29,20 +31,17 @@ package io.github.petertrr.diffutils.algorithm.myers
  * @param prev The previous node in the path, if any
  */
 internal class PathNode(
-    val i: Int,
-    val j: Int,
-    val snake: Boolean,
-    val bootstrap: Boolean,
+    @JvmField val i: Int,
+    @JvmField val j: Int,
+    @JvmField val snake: Boolean,
+    @JvmField val bootstrap: Boolean,
     prev: PathNode? = null,
 ) {
     /**
      * The previous node in the path.
      */
-    val prev: PathNode? = if (snake) {
-        prev
-    } else {
-        prev?.previousSnake()
-    }
+    @JvmField
+    val prev: PathNode? = if (snake) prev else prev?.previousSnake()
 
     /**
      * Skips sequences of [PathNodes][PathNode] until a snake or bootstrap node is found, or the end of the

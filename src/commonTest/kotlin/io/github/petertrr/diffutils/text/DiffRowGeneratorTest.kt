@@ -181,14 +181,16 @@ class DiffRowGeneratorTest {
 
     @Test
     fun testSplitString() {
-        val list = DiffRowGenerator.splitStringPreserveDelimiter("test,test2", DiffRowGenerator.SPLIT_BY_WORD_PATTERN)
+        val splitter = WordDiffSplitter()
+        val list = splitter.split("test,test2")
         assertEquals(3, list.size)
         assertEquals("[test, ,, test2]", list.toString())
     }
 
     @Test
     fun testSplitString2() {
-        val list = DiffRowGenerator.splitStringPreserveDelimiter("test , test2", DiffRowGenerator.SPLIT_BY_WORD_PATTERN)
+        val splitter = WordDiffSplitter()
+        val list = splitter.split("test , test2")
         println(list)
         assertEquals(5, list.size)
         assertEquals("[test,  , ,,  , test2]", list.toString())
@@ -196,7 +198,8 @@ class DiffRowGeneratorTest {
 
     @Test
     fun testSplitString3() {
-        val list = DiffRowGenerator.splitStringPreserveDelimiter("test,test2,", DiffRowGenerator.SPLIT_BY_WORD_PATTERN)
+        val splitter = WordDiffSplitter()
+        val list = splitter.split("test,test2,")
         println(list)
         assertEquals(4, list.size)
         assertEquals("[test, ,, test2, ,]", list.toString())
@@ -208,8 +211,8 @@ class DiffRowGeneratorTest {
             showInlineDiffs = true,
             mergeOriginalRevised = true,
             inlineDiffByWord = true,
-            oldTag = { _, _ -> "~" },
-            newTag = { _, _ -> "**" },
+            oldTag = MarkdownTagGenerator("~"),
+            newTag = MarkdownTagGenerator("**"),
         )
         val rows: List<DiffRow> = generator.generateDiffRows(
             listOf("This is a test senctence."),
@@ -225,8 +228,8 @@ class DiffRowGeneratorTest {
         val generator = DiffRowGenerator(
             showInlineDiffs = true,
             inlineDiffByWord = true,
-            oldTag = { _, _ -> "~" },
-            newTag = { _, _ -> "**" },
+            oldTag = MarkdownTagGenerator("~"),
+            newTag = MarkdownTagGenerator("**"),
         )
         val rows: List<DiffRow> = generator.generateDiffRows(
             listOf("This is a test senctence.", "This is the second line.", "And here is the finish."),
@@ -260,12 +263,13 @@ class DiffRowGeneratorTest {
 
     @Test
     fun testGeneratorIssue14() {
+        val splitter = WordDiffSplitter(Regex(","))
         val generator = DiffRowGenerator(
             showInlineDiffs = true,
             mergeOriginalRevised = true,
-            inlineDiffSplitter = { line -> DiffRowGenerator.splitStringPreserveDelimiter(line, Regex(",")) },
-            oldTag = { _, _ -> "~" },
-            newTag = { _, _ -> "**" },
+            inlineDiffSplitter = splitter,
+            oldTag = MarkdownTagGenerator("~"),
+            newTag = MarkdownTagGenerator("**"),
         )
         val rows: List<DiffRow> = generator.generateDiffRows(
             listOf("J. G. Feldstein, Chair"),
@@ -282,8 +286,8 @@ class DiffRowGeneratorTest {
             showInlineDiffs = true, //show the ~ ~ and ** ** symbols on each difference
             inlineDiffByWord = true, //show the ~ ~ and ** ** around each different word instead of each letter
             //reportLinesUnchanged = true) //experiment
-            oldTag = { _, _ -> "~" },
-            newTag = { _, _ -> "**" },
+            oldTag = MarkdownTagGenerator("~"),
+            newTag = MarkdownTagGenerator("**"),
         )
         val listOne: List<String> = """
             TABLE_NAME, COLUMN_NAME, DATA_TYPE, DATA_LENGTH, DATA_PRECISION, NULLABLE,
@@ -323,8 +327,8 @@ class DiffRowGeneratorTest {
         val generator = DiffRowGenerator(
             showInlineDiffs = true,
             inlineDiffByWord = true,
-            oldTag = { _, _ -> "~" },
-            newTag = { _, _ -> "**" },
+            oldTag = MarkdownTagGenerator("~"),
+            newTag = MarkdownTagGenerator("**"),
         )
         val aa = "This is a test senctence."
         val bb = "This is a test for diffutils.\nThis is the second line."
@@ -351,8 +355,8 @@ class DiffRowGeneratorTest {
         val generator = DiffRowGenerator(
             showInlineDiffs = true,
             inlineDiffByWord = true,
-            oldTag = { _, _ -> "~" },
-            newTag = { _, _ -> "**" },
+            oldTag = MarkdownTagGenerator("~"),
+            newTag = MarkdownTagGenerator("**"),
         )
         val aa = "This is a test for diffutils.\nThis is the second line."
         val bb = "This is a test senctence."
@@ -374,8 +378,8 @@ class DiffRowGeneratorTest {
         val generator = DiffRowGenerator(
             showInlineDiffs = true,
             inlineDiffByWord = true,
-            oldTag = { _, _ -> "~" },
-            newTag = { _, _ -> "**" },
+            oldTag = MarkdownTagGenerator("~"),
+            newTag = MarkdownTagGenerator("**"),
         )
         val aa = "This is a test senctence."
         val bb = "This is a test for diffutils.\nThis is the second line.\nAnd one more."
@@ -417,8 +421,8 @@ class DiffRowGeneratorTest {
         val generator = DiffRowGenerator(
             showInlineDiffs = true,
             reportLinesUnchanged = true,
-            oldTag = { _, _ -> "~~" },
-            newTag = { _, _ -> "**" },
+            oldTag = MarkdownTagGenerator("~~"),
+            newTag = MarkdownTagGenerator("**"),
         )
         val rows: List<DiffRow> = generator.generateDiffRows(listOf("<dt>To do</dt>"), listOf("<dt>Done</dt>"))
         assertEquals(DiffRow(DiffRow.Tag.CHANGE, "<dt>~~T~~o~~ do~~</dt>", "<dt>**D**o**ne**</dt>"), rows.single())
@@ -431,8 +435,8 @@ class DiffRowGeneratorTest {
             inlineDiffByWord = true,
             ignoreWhiteSpaces = true,
             mergeOriginalRevised = true,
-            oldTag = { _, _ -> "~" }, //introduce markdown style for strikethrough,
-            newTag = { _, _ -> "**" } //introduce markdown style for bold,
+            oldTag = MarkdownTagGenerator("~"), //introduce markdown style for strikethrough,
+            newTag = MarkdownTagGenerator("**") //introduce markdown style for bold,
         )
 
         //compute the differences for two test texts.
@@ -452,8 +456,8 @@ class DiffRowGeneratorTest {
             inlineDiffByWord = true,
             ignoreWhiteSpaces = true,
             mergeOriginalRevised = true,
-            oldTag = { _, _ -> "~" }, //introduce markdown style for strikethrough,
-            newTag = { _, _ -> "**" } //introduce markdown style for bold,
+            oldTag = MarkdownTagGenerator("~"), //introduce markdown style for strikethrough,
+            newTag = MarkdownTagGenerator("**") //introduce markdown style for bold,
         )
 
         //compute the differences for two test texts.
@@ -471,8 +475,8 @@ class DiffRowGeneratorTest {
             inlineDiffByWord = true,
             ignoreWhiteSpaces = true,
             mergeOriginalRevised = true,
-            oldTag = { _, _ -> "~" }, //introduce markdown style for strikethrough,
-            newTag = { _, _ -> "**" } //introduce markdown style for bold,
+            oldTag = MarkdownTagGenerator("~"), //introduce markdown style for strikethrough,
+            newTag = MarkdownTagGenerator("**") //introduce markdown style for bold,
         )
 
         //compute the differences for two test texts.
@@ -499,8 +503,8 @@ class DiffRowGeneratorTest {
             showInlineDiffs = true,
             inlineDiffByWord = true,
             mergeOriginalRevised = true,
-            oldTag = { _, _ -> "~" }, //introduce markdown style for strikethrough,
-            newTag = { _, _ -> "**" }, //introduce markdown style for bold,
+            oldTag = MarkdownTagGenerator("~"), //introduce markdown style for strikethrough,
+            newTag = MarkdownTagGenerator("**"), //introduce markdown style for bold,
             processDiffs = { str -> str.replace(" ", "/") },
         )
 
@@ -517,8 +521,8 @@ class DiffRowGeneratorTest {
         val generator = DiffRowGenerator(
             showInlineDiffs = true,
             reportLinesUnchanged = true,
-            oldTag = { _, _ -> "~" },
-            newTag = { _, _ -> "**" },
+            oldTag = MarkdownTagGenerator("~"),
+            newTag = MarkdownTagGenerator("**"),
             mergeOriginalRevised = true,
             inlineDiffByWord = false,
             replaceOriginalLinefeedInChangesWithSpaces = true
@@ -536,8 +540,8 @@ class DiffRowGeneratorTest {
         val generator = DiffRowGenerator(
             showInlineDiffs = true,
             reportLinesUnchanged = true,
-            oldTag = { _, _ -> "~" },
-            newTag = { _, _ -> "**" },
+            oldTag = MarkdownTagGenerator("~"),
+            newTag = MarkdownTagGenerator("**"),
             mergeOriginalRevised = false,
             inlineDiffByWord = false,
         )
@@ -554,8 +558,8 @@ class DiffRowGeneratorTest {
         val generator = DiffRowGenerator(
             showInlineDiffs = true,
             reportLinesUnchanged = true,
-            oldTag = { _, _ -> "~" },
-            newTag = { _, _ -> "**" },
+            oldTag = MarkdownTagGenerator("~"),
+            newTag = MarkdownTagGenerator("**"),
             mergeOriginalRevised = true,
             inlineDiffByWord = true,
         )
@@ -572,8 +576,8 @@ class DiffRowGeneratorTest {
         val generator = DiffRowGenerator(
             showInlineDiffs = false,
             reportLinesUnchanged = true,
-            oldTag = { _, _ -> "~" },
-            newTag = { _, _ -> "**" },
+            oldTag = MarkdownTagGenerator("~"),
+            newTag = MarkdownTagGenerator("**"),
             mergeOriginalRevised = true,
             inlineDiffByWord = false,
         )
@@ -631,8 +635,8 @@ Bengal tiger panther but singapura but bombay munchkin for cougar. And more.""".
             showInlineDiffs = true,
             mergeOriginalRevised = true,
             inlineDiffByWord = true,
-            oldTag = { _, _ -> "~" },
-            newTag = { _, _ -> "**" },
+            oldTag = MarkdownTagGenerator("~"),
+            newTag = MarkdownTagGenerator("**"),
         )
         val rows: List<DiffRow> = generator.generateDiffRows(
             listOf(*original.split("\n").toTypedArray()),
@@ -650,8 +654,8 @@ Bengal tiger panther but singapura but bombay munchkin for cougar. And more.""".
         val generator = DiffRowGenerator(
             showInlineDiffs = false,
             inlineDiffByWord = true,
-            oldTag = { _, _ -> "~" },
-            newTag = { _, _ -> "**" },
+            oldTag = MarkdownTagGenerator("~"),
+            newTag = MarkdownTagGenerator("**"),
         )
         val rows = generator.generateDiffRows(original, revised)
         for (diff in rows) {
@@ -670,8 +674,8 @@ Bengal tiger panther but singapura but bombay munchkin for cougar. And more.""".
         val generator = DiffRowGenerator(
             showInlineDiffs = true,
             inlineDiffByWord = true,
-            oldTag = { _, _ -> "~" },
-            newTag = { _, _ -> "**" },
+            oldTag = MarkdownTagGenerator("~"),
+            newTag = MarkdownTagGenerator("**"),
         )
         val rows = generator.generateDiffRows(original, revised)
         for (diff in rows) {
@@ -704,14 +708,100 @@ Bengal tiger panther but singapura but bombay munchkin for cougar. And more.""".
             showInlineDiffs = true,
             mergeOriginalRevised = true,
             inlineDiffByWord = true,
-            oldTag = { _, _ -> "~" },
-            newTag = { _, _ -> "**" },
-            )
+            oldTag = MarkdownTagGenerator("~"),
+            newTag = MarkdownTagGenerator("**"),
+        )
         val rows: List<DiffRow> = generator.generateDiffRows(
             original.split("\n"),
             revised.split("\n")
         )
         rows.filter { it.tag != DiffRow.Tag.EQUAL }
             .forEach { println(it) }
+    }
+
+    @Test
+    fun testIssue129WithDeltaDecompression() {
+        val lines1 = listOf(
+            "apple1",
+            "apple2",
+            "apple3",
+            "A man named Frankenstein abc to Switzerland for cookies!",
+            "banana1",
+            "banana2",
+            "banana3",
+        )
+
+        val lines2 = listOf(
+            "apple1",
+            "apple2",
+            "apple3",
+            "A man named Frankenstein",
+            "xyz",
+            "to Switzerland for cookies!",
+            "banana1",
+            "banana2",
+            "banana3",
+        )
+
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            oldTag = CustomOldTagGenerator(),
+            newTag = CustomNewTagGenerator(),
+        )
+
+        val diffRows = generator.generateDiffRows(lines1, lines2)
+        val txt = diffRows.joinToString(separator = " ") { row -> row.tag.toString() }
+        assertEquals(txt, "EQUAL EQUAL EQUAL CHANGE INSERT INSERT EQUAL EQUAL EQUAL")
+    }
+
+    @Test
+    fun testIssue129SkipDeltaDecompression() {
+        val lines1 = listOf(
+            "apple1",
+            "apple2",
+            "apple3",
+            "A man named Frankenstein abc to Switzerland for cookies!",
+            "banana1",
+            "banana2",
+            "banana3",
+        )
+
+        val lines2 = listOf(
+            "apple1",
+            "apple2",
+            "apple3",
+            "A man named Frankenstein",
+            "xyz",
+            "to Switzerland for cookies!",
+            "banana1",
+            "banana2",
+            "banana3",
+        )
+
+        val generator = DiffRowGenerator(
+            showInlineDiffs = true,
+            decompressDeltas = false,
+            oldTag = CustomOldTagGenerator(),
+            newTag = CustomNewTagGenerator(),
+        )
+
+        val diffRows = generator.generateDiffRows(lines1, lines2)
+        val txt = diffRows.joinToString(separator = " ") { row -> row.tag.toString() }
+        assertEquals(txt, "EQUAL EQUAL EQUAL CHANGE CHANGE CHANGE EQUAL EQUAL EQUAL")
+    }
+
+    private class MarkdownTagGenerator(val str: String) : DiffTagGenerator {
+        override fun generateOpen(tag: DiffRow.Tag): String = str
+        override fun generateClose(tag: DiffRow.Tag): String = str
+    }
+
+    private class CustomOldTagGenerator : DiffTagGenerator {
+        override fun generateOpen(tag: DiffRow.Tag): String = "==old$tag==>"
+        override fun generateClose(tag: DiffRow.Tag): String = "<==old=="
+    }
+
+    private class CustomNewTagGenerator : DiffTagGenerator {
+        override fun generateOpen(tag: DiffRow.Tag): String = "==new$tag==>"
+        override fun generateClose(tag: DiffRow.Tag): String = "<==new=="
     }
 }
