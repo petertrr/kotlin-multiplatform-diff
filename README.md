@@ -32,8 +32,9 @@ Currently, artifacts for the following platforms are supported:
 
 The supported Native targets are (following the Kotlin/Native [target support guidelines][1]):
 
-| Tier 1   | Tier 2   | Tier 3   |
-|:---------|:---------|:---------|
-| macosX64 | linuxX64 | mingwX64 |
+| Tier 1            | Tier 2            | Tier 3   |
+|:------------------|:------------------|:---------|
+| macosX64          | linuxX64          | mingwX64 |
+| macosArm64        | linuxArm64        |          |
 
 [1]: https://kotlinlang.org/docs/native-target-support.html
