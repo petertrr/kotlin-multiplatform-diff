@@ -15,9 +15,9 @@
  */
 package io.github.petertrr.diffutils.text
 
-import io.github.petertrr.diffutils.text.normalize as normalizeFn
+import io.github.petertrr.diffutils.normalize
 
 internal class HtmlLineNormalizer : DiffLineNormalizer {
     override fun normalize(line: String): String =
-        normalizeFn(line)
+        line.normalize()
 }

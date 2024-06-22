@@ -18,9 +18,10 @@
  */
 package io.github.petertrr.diffutils.text
 
-import io.github.petertrr.diffutils.algorithm.DiffEqualizer
+import io.github.petertrr.diffutils.algorithm.DiffAlgorithm
 import io.github.petertrr.diffutils.algorithm.EqualsDiffEqualizer
 import io.github.petertrr.diffutils.algorithm.IgnoreWsStringDiffEqualizer
+import io.github.petertrr.diffutils.algorithm.myers.MyersDiff
 import io.github.petertrr.diffutils.diff
 import io.github.petertrr.diffutils.patch.ChangeDelta
 import io.github.petertrr.diffutils.patch.Chunk
@@ -29,6 +30,7 @@ import io.github.petertrr.diffutils.patch.Delta
 import io.github.petertrr.diffutils.patch.DeltaType
 import io.github.petertrr.diffutils.patch.InsertDelta
 import io.github.petertrr.diffutils.patch.Patch
+import io.github.petertrr.diffutils.wrapText
 import kotlin.math.max
 import kotlin.math.min
 
@@ -41,7 +43,7 @@ import kotlin.math.min
  * @param columnWidth Set the column width of generated lines of original and revised texts.
  *   Making it < 0 doesn't make any sense.
  * @param ignoreWhiteSpaces Ignore white spaces in generating diff rows or not
- * @param equalizer Provide an equalizer for diff processing
+ * @param algorithm The diffing algorithm to use. By default [MyersDiff].
  * @param inlineDiffByWord Per default each character is separately processed.
  *   Setting this parameter to `true` introduces processing by word, which does
  *   not deliver in word changes. Therefore, the whole word will be tagged as changed:
@@ -57,8 +59,7 @@ import kotlin.math.min
  *   Default: `false`
  * @param newTag Generator for New-Text-Tags
  * @param oldTag Generator for Old-Text-Tags
- * @param reportLinesUnchanged Give the original old and new text lines to [DiffRow]
- *   without any additional processing and without any tags to highlight the change.
+ * @param reportLinesUnchanged Report all lines without markup on the old or new text.
  *   Default: `false`
  * @param lineNormalizer By default, [DiffRowGenerator] preprocesses lines for HTML output.
  *   Tabs and special HTML characters like "&lt;" are replaced with its encoded value.
@@ -80,12 +81,12 @@ import kotlin.math.min
 public class DiffRowGenerator(
     private val columnWidth: Int = 80,
     private val ignoreWhiteSpaces: Boolean = false,
-    private var equalizer: DiffEqualizer<String> = if (ignoreWhiteSpaces) IgnoreWsStringDiffEqualizer() else EqualsDiffEqualizer(),
+    private val algorithm: DiffAlgorithm<String> = defaultAlgorithm(ignoreWhiteSpaces),
     inlineDiffByWord: Boolean = false,
-    private val inlineDiffSplitter: DiffSplitter = if (inlineDiffByWord) WordDiffSplitter() else CharDiffSplitter(),
+    private val inlineDiffSplitter: DiffSplitter = defaultSplitter(inlineDiffByWord),
     private val mergeOriginalRevised: Boolean = false,
-    private val newTag: DiffTagGenerator = NewDiffTagGenerator(),
-    private val oldTag: DiffTagGenerator = OldDiffTagGenerator(),
+    private val newTag: DiffTagGenerator = HtmlDiffTagGenerator("editNewInline"),
+    private val oldTag: DiffTagGenerator = HtmlDiffTagGenerator("editOldInline"),
     private val reportLinesUnchanged: Boolean = false,
     private val lineNormalizer: DiffLineNormalizer = HtmlLineNormalizer(),
     private val processDiffs: DiffLineProcessor? = null,
@@ -102,7 +103,7 @@ public class DiffRowGenerator(
      * @return The [DiffRow]s between original and revised texts
      */
     public fun generateDiffRows(original: List<String>, revised: List<String>): List<DiffRow> =
-        generateDiffRows(original, diff(original, revised, equalizer))
+        generateDiffRows(original, diff(original, revised, algorithm))
 
     /**
      * Generates the [DiffRow]s describing the difference between original and
@@ -138,8 +139,8 @@ public class DiffRowGenerator(
         return diffRows
     }
 
-    internal fun normalizeLines(list: List<String>): List<String> =
-        if (reportLinesUnchanged) list else list.map { lineNormalizer.normalize(it) }
+    private fun normalizeLines(list: List<String>): List<String> =
+        if (reportLinesUnchanged) list else list.map(lineNormalizer::normalize)
 
     /**
      * Transforms one patch delta into a [DiffRow] object.
@@ -262,7 +263,7 @@ public class DiffRowGenerator(
     }
 
     private fun buildDiffRowWithoutNormalizing(type: DiffRow.Tag, oldLine: String, newLine: String): DiffRow =
-        DiffRow(type, wrapText(oldLine, columnWidth), wrapText(newLine, columnWidth))
+        DiffRow(type, oldLine.wrapText(columnWidth), newLine.wrapText(columnWidth))
 
     /**
      * Add the inline diffs for given delta
@@ -278,7 +279,7 @@ public class DiffRowGenerator(
         val origList = inlineDiffSplitter.split(joinedOrig)
         val revList = inlineDiffSplitter.split(joinedRev)
 
-        val diff = diff(origList, revList, equalizer)
+        val diff = diff(origList, revList, algorithm)
         val inlineDeltas = diff.deltas.reversed()
 
         for (inlineDelta in inlineDeltas) {
@@ -364,8 +365,8 @@ public class DiffRowGenerator(
             }
         }
 
-        val origResult = StringBuilder()
-        val revResult = StringBuilder()
+        val origResult = StringBuilder(origList.size)
+        val revResult = StringBuilder(revList.size)
 
         for (character in origList) {
             origResult.append(character)
@@ -379,9 +380,11 @@ public class DiffRowGenerator(
         //  trailing empty string by default
         val original = origResult.split("\n").dropLastWhile(String::isEmpty)
         val revised = revResult.split("\n").dropLastWhile(String::isEmpty)
-        val diffRows = ArrayList<DiffRow>()
 
-        for (j in 0..<max(original.size, revised.size)) {
+        val size = max(original.size, revised.size)
+        val diffRows = ArrayList<DiffRow>(size)
+
+        for (j in 0..<size) {
             diffRows.add(
                 buildDiffRowWithoutNormalizing(
                     type = DiffRow.Tag.CHANGE,
@@ -396,7 +399,7 @@ public class DiffRowGenerator(
 
     private fun preprocessLine(line: String): String {
         val normalized = lineNormalizer.normalize(line)
-        return if (columnWidth == 0) normalized else wrapText(normalized, columnWidth)
+        return if (columnWidth == 0) normalized else normalized.wrapText(columnWidth)
     }
 
     /**
@@ -468,3 +471,11 @@ public class DiffRowGenerator(
         return sequence
     }
 }
+
+private fun defaultAlgorithm(ignoreWhiteSpaces: Boolean): DiffAlgorithm<String> {
+    val equalizer = if (ignoreWhiteSpaces) IgnoreWsStringDiffEqualizer() else EqualsDiffEqualizer()
+    return MyersDiff(equalizer)
+}
+
+private fun defaultSplitter(inlineDiffByWord: Boolean): DiffSplitter =
+    if (inlineDiffByWord) WordDiffSplitter() else CharDiffSplitter()

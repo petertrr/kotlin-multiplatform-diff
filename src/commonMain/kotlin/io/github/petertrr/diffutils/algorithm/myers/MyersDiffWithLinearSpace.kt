@@ -50,7 +50,6 @@ public class MyersDiffWithLinearSpace<T>(
         progress: DiffAlgorithmListener,
     ) {
         progress.diffStep((end1 - start1) / 2 + (end2 - start2) / 2, -1)
-
         val middle = getMiddleSnake(data, start1, end1, start2, end2)
 
         if (middle == null ||
@@ -65,28 +64,29 @@ public class MyersDiffWithLinearSpace<T>(
                     ++i
                     ++j
                 } else {
+                    // index is less than 0 here if data.script is empty
+                    val index = data.script.size - 1
+
                     // TODO: compress these commands
                     if (end1 - start1 > end2 - start2) {
-                        if (data.script.isEmpty() ||
-                            data.script[data.script.size - 1].endOriginal != i ||
-                            data.script[data.script.size - 1].deltaType != DeltaType.DELETE
+                        if (index < 0 ||
+                            data.script[index].endOriginal != i ||
+                            data.script[index].deltaType != DeltaType.DELETE
                         ) {
                             data.script.add(Change(DeltaType.DELETE, i, i + 1, j, j))
                         } else {
-                            data.script[data.script.size - 1] =
-                                data.script[data.script.size - 1].copy(endOriginal = i + 1)
+                            data.script[index] = data.script[index].copy(endOriginal = i + 1)
                         }
 
                         ++i
                     } else {
-                        if (data.script.isEmpty() ||
-                            data.script[data.script.size - 1].endRevised != j ||
-                            data.script[data.script.size - 1].deltaType != DeltaType.INSERT
+                        if (index < 0 ||
+                            data.script[index].endRevised != j ||
+                            data.script[index].deltaType != DeltaType.INSERT
                         ) {
                             data.script.add(Change(DeltaType.INSERT, i, i, j, j + 1))
                         } else {
-                            data.script[data.script.size - 1] =
-                                data.script[data.script.size - 1].copy(endRevised = j + 1)
+                            data.script[index] = data.script[index].copy(endRevised = j + 1)
                         }
 
                         ++j

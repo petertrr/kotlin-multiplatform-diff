@@ -55,11 +55,7 @@ internal class PathNode(
             return null
         }
 
-        return if (!snake && prev != null) {
-            prev.previousSnake()
-        } else {
-            this
-        }
+        return if (!snake && prev != null) prev.previousSnake() else this
     }
 
     override fun toString(): String {

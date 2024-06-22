@@ -22,11 +22,9 @@ package io.github.petertrr.diffutils
 
 import io.github.petertrr.diffutils.algorithm.DiffAlgorithm
 import io.github.petertrr.diffutils.algorithm.DiffAlgorithmListener
-import io.github.petertrr.diffutils.algorithm.DiffEqualizer
 import io.github.petertrr.diffutils.algorithm.NoopAlgorithmListener
 import io.github.petertrr.diffutils.algorithm.myers.MyersDiff
 import io.github.petertrr.diffutils.patch.Patch
-import io.github.petertrr.diffutils.patch.PatchFailedException
 import io.github.petertrr.diffutils.text.DiffRowGenerator
 import kotlin.jvm.JvmName
 import kotlin.jvm.JvmOverloads
@@ -35,16 +33,16 @@ import kotlin.jvm.JvmOverloads
 private val lineBreak = Regex("\r\n|\r|\n")
 
 /**
- * Computes the difference between the source and target text.
+ * Computes the difference between two strings.
  *
  * By default, uses the Myers algorithm.
  *
- * @param sourceText The original text
- * @param targetText The target text
+ * @param sourceText A string representing the original text
+ * @param targetText A string representing the revised text
  * @param algorithm The diff algorithm to use
  * @param progress The diff algorithm progress listener
  * @param includeEqualParts Whether to include equal data parts into the patch. `false` by default.
- * @return The patch describing the difference between the original and target text
+ * @return The patch describing the difference between the original and revised strings
  */
 @JvmOverloads
 public fun diff(
@@ -63,36 +61,16 @@ public fun diff(
     )
 
 /**
- * Computes the difference between the source and target list of elements using the Myers algorithm.
- *
- * @param source The original elements
- * @param target The target elements
- * @param equalizer The equalizer to replace the default compare algorithm [Any.equals].
- *   If `null`, the default equalizer of the default algorithm is used.
- * @return The patch describing the difference between the source and target sequences
- */
-public fun <T> diff(
-    source: List<T>,
-    target: List<T>,
-    equalizer: DiffEqualizer<T>,
-): Patch<T> =
-    diff(
-        source = source,
-        target = target,
-        algorithm = MyersDiff(equalizer),
-    )
-
-/**
  * Computes the difference between the original and target list of elements.
  *
- * By default, uses the Meyers algorithm.
+ * By default, uses the Myers algorithm.
  *
- * @param source The original elements
- * @param target The target elements
+ * @param source A list representing the original sequence of elements
+ * @param target A list representing the revised sequence of elements
  * @param algorithm The diff algorithm to use
  * @param progress The diff algorithm progress listener
- * @param includeEqualParts Whether to include equal data parts into the patch. `false` by default.
- * @return The patch describing the difference between the original and target sequences
+ * @param includeEqualParts Whether to include equal parts in the resulting patch. `false` by default.
+ * @return The patch describing the difference between the original and revised sequences
  */
 @JvmOverloads
 public fun <T> diff(
@@ -114,6 +92,10 @@ public fun <T> diff(
  *
  * This one uses the "trick" to make out of texts lists of characters,
  * like [DiffRowGenerator] does and merges those changes at the end together again.
+ *
+ * @param original A string representing the original text
+ * @param revised A string representing the revised text
+ * @return The patch describing the difference between the original and revised text
  */
 public fun diffInline(original: String, revised: String): Patch<String> {
     val origChars = original.toCharArray()
@@ -142,22 +124,21 @@ public fun diffInline(original: String, revised: String): Patch<String> {
 }
 
 /**
- * Patch the original text with the given patch.
+ * Applies the given patch to the original list and returns the revised list.
  *
- * @param original The original text
+ * @param original A list representing the original sequence of elements
  * @param patch The patch to apply
- * @return The revised text
- * @throws PatchFailedException If the patch cannot be applied
+ * @return A list representing the revised sequence of elements
  */
 public fun <T> patch(original: List<T>, patch: Patch<T>): List<T> =
     patch.applyTo(original)
 
 /**
- * Unpatch the revised text for a given patch
+ * Applies the given patch to the revised list and returns the original list.
  *
- * @param revised The revised text
- * @param patch The given patch
- * @return The original text
+ * @param revised A list representing the revised sequence of elements
+ * @param patch The patch to apply
+ * @return A list representing the original sequence of elements
  */
 public fun <T> unpatch(revised: List<T>, patch: Patch<T>): List<T> =
     patch.restore(revised)

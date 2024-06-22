@@ -15,10 +15,13 @@
  */
 package io.github.petertrr.diffutils.text
 
+// As a "global" variable to avoid re-compiling the regex each time
+private val defaultPattern = Regex("\\s+|[,.\\[\\](){}/\\\\*+\\-#]")
+
 /**
  * Splitting lines by word to achieve word by word diff checking.
  */
-internal class WordDiffSplitter(private val pattern: Regex = Regex("\\s+|[,.\\[\\](){}/\\\\*+\\-#]")) : DiffSplitter {
+internal class WordDiffSplitter(private val pattern: Regex = defaultPattern) : DiffSplitter {
     override fun split(line: String): MutableList<String> {
         val matchResults = pattern.findAll(line)
         val list = ArrayList<String>()
