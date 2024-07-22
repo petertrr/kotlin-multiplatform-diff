@@ -6,7 +6,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise") version("3.17.6")
+    id("com.gradle.develocity") version("3.17.6")
     id("org.ajoberstar.reckon.settings") version("0.18.2")
 }
 
@@ -26,10 +26,10 @@ extensions.configure<org.ajoberstar.reckon.gradle.ReckonExtension> {
 }
 
 if (System.getenv("CI") != null) {
-    gradleEnterprise {
+    develocity {
         buildScan {
-            termsOfServiceUrl = "https://gradle.com/terms-of-service"
-            termsOfServiceAgree = "yes"
+            termsOfUseUrl = "https://gradle.com/terms-of-service"
+            termsOfUseAgree = "yes"
         }
     }
 }
