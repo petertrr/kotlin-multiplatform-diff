@@ -16,7 +16,8 @@
 package io.github.petertrr.diffutils.text
 
 // As a "global" variable to avoid re-compiling the regex each time
-private val defaultPattern = Regex("\\s+|[,.\\[\\](){}/\\\\*+\\-#]")
+@Suppress("RegExpRedundantEscape") // To be PCRE compliant!
+private val defaultPattern = Regex("""\s+|[,.\[\](){}\/\\*+\-#<>;:&']+""")
 
 /**
  * Splitting lines by word to achieve word by word diff checking.
