@@ -19,12 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-extensions.configure<org.ajoberstar.reckon.gradle.ReckonExtension> {
-    setDefaultInferredScope("minor")
-    scopeFromProp()
-    stageFromProp("alpha", "rc", "final")  // version string will be based on last commit; when checking out a tag, that
-}
-
 develocity {
     buildScan {
         val isCI = System.getenv("CI").toBoolean()
@@ -38,4 +32,12 @@ develocity {
             onlyIf { isCI }
         }
     }
+}
+
+reckon {
+    setDefaultInferredScope("minor")
+    setScopeCalc(calcScopeFromProp())
+
+    stages("alpha", "rc", "final")
+    setStageCalc(calcStageFromProp())
 }
