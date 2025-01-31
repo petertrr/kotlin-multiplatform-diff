@@ -6,8 +6,8 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.develocity") version("3.17.6")
-    id("org.ajoberstar.reckon.settings") version("0.18.2")
+    id("com.gradle.develocity") version ("3.19")
+    id("org.ajoberstar.reckon.settings") version ("0.18.2")
 }
 
 rootProject.name = "kotlin-multiplatform-diff"
@@ -25,11 +25,17 @@ extensions.configure<org.ajoberstar.reckon.gradle.ReckonExtension> {
     stageFromProp("alpha", "rc", "final")  // version string will be based on last commit; when checking out a tag, that
 }
 
-if (System.getenv("CI") != null) {
-    develocity {
-        buildScan {
+develocity {
+    buildScan {
+        val isCI = System.getenv("CI").toBoolean()
+
+        if (isCI) {
             termsOfUseUrl = "https://gradle.com/terms-of-service"
             termsOfUseAgree = "yes"
+        }
+
+        publishing {
+            onlyIf { isCI }
         }
     }
 }
