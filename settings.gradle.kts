@@ -7,7 +7,7 @@ pluginManagement {
 
 plugins {
     id("com.gradle.develocity") version ("3.19")
-    id("org.ajoberstar.reckon.settings") version ("0.18.2")
+    id("org.ajoberstar.reckon.settings") version ("0.19.1")
 }
 
 rootProject.name = "kotlin-multiplatform-diff"
@@ -17,12 +17,6 @@ dependencyResolutionManagement {
     repositories {
         mavenCentral()
     }
-}
-
-extensions.configure<org.ajoberstar.reckon.gradle.ReckonExtension> {
-    setDefaultInferredScope("minor")
-    scopeFromProp()
-    stageFromProp("alpha", "rc", "final")  // version string will be based on last commit; when checking out a tag, that
 }
 
 develocity {
@@ -38,4 +32,12 @@ develocity {
             onlyIf { isCI }
         }
     }
+}
+
+reckon {
+    setDefaultInferredScope("minor")
+    setScopeCalc(calcScopeFromProp())
+
+    stages("alpha", "rc", "final")
+    setStageCalc(calcStageFromProp())
 }
