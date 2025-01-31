@@ -12,7 +12,7 @@ permissions:
 jobs:
   build_and_test_with_code_coverage:
     name: Build, test and upload code coverage
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       CI: true
 
@@ -23,7 +23,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 11
-      - uses: gradle/actions/setup-gradle@v3
+      - uses: gradle/actions/setup-gradle@v4
         name: Setup Gradle
         with:
           gradle-version: wrapper
@@ -38,7 +38,7 @@ jobs:
           name: gradle-test-report
           path: '**/build/reports/'
       - name: Code coverage report
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
