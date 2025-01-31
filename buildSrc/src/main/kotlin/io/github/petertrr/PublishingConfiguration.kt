@@ -6,11 +6,9 @@ import io.github.gradlenexus.publishplugin.NexusPublishExtension
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
-import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.kotlin.dsl.*
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.plugins.signing.Sign
 import org.gradle.plugins.signing.SigningExtension
 import org.gradle.plugins.signing.SigningPlugin
@@ -42,34 +40,10 @@ fun Project.configurePublishing() {
     if (hasProperty("sonatypeUsername")) {
         configureNexusPublishing()
     }
-
-    // https://kotlinlang.org/docs/mpp-publish-lib.html#avoid-duplicate-publications
-    // Publication with name `kotlinMultiplatform` is for the default artifact.
-    // `configureNexusPublishing` adds sonatype publication tasks inside `afterEvaluate`.
-    rootProject.afterEvaluate {
-        val publicationsFromMainHost = listOf("jvm", "js", "linuxX64", "kotlinMultiplatform", "metadata")
-        configure<PublishingExtension> {
-            publications.matching { it.name in publicationsFromMainHost }.all {
-                val targetPublication = this@all
-                tasks.withType<AbstractPublishToMaven>()
-                    .matching { it.publication == targetPublication }
-                    .configureEach {
-                        onlyIf {
-                            // main publishing CI job is executed on Linux host
-                            DefaultNativePlatform.getCurrentOperatingSystem().isLinux.apply {
-                                if (!this) {
-                                    logger.lifecycle("Publication ${(it as AbstractPublishToMaven).publication.name} is skipped on current host")
-                                }
-                            }
-                        }
-                    }
-                }
-        }
-    }
 }
 
 private fun Project.configurePublications() {
-    val dokkaJar = tasks.create<Jar>("dokkaJar") {
+    val dokkaJar = tasks.register<Jar>("dokkaJar") {
         group = "documentation"
         archiveClassifier.set("javadoc")
         from(tasks.findByName("dokkaHtml"))
