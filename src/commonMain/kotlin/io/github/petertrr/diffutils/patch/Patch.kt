@@ -37,40 +37,62 @@ public class Patch<T>(private var conflictOutput: ConflictOutput<T> = ExceptionP
         }
 
     /**
-     * Apply this patch to the given target.
+     * Apply this patch to the given target list, returning a new list.
      *
      * @return The patched text
      * @throws PatchFailedException If the patch cannot be applied
      */
     public fun applyTo(target: List<T>): List<T> {
         val result = target.toMutableList()
-        val it = deltas.listIterator(deltas.size)
-
-        while (it.hasPrevious()) {
-            val delta = it.previous()
-            val verifyChunk = delta.verifyAndApplyTo(result)
-            conflictOutput.processConflict(verifyChunk, delta, result)
-        }
-
+        applyToExisting(result)
         return result
     }
 
     /**
-     * Restore the text to its original form. Opposite of the [applyTo] method.
+     * Apply this patch to the given target list, directly modifying it.
+     *
+     * @return The patched text
+     * @throws PatchFailedException If the patch cannot be applied
+     */
+    @Suppress("MemberVisibilityCanBePrivate")
+    public fun applyToExisting(target: MutableList<T>) {
+        val it = deltas.listIterator(deltas.size)
+
+        while (it.hasPrevious()) {
+            val delta = it.previous()
+            val verifyChunk = delta.verifyAndApplyTo(target)
+            conflictOutput.processConflict(verifyChunk, delta, target)
+        }
+    }
+
+    /**
+     * Creates a new list, containing the restored state of the given target list.
+     * Opposite of the [applyTo] method.
      *
      * @param target The given target
      * @return The restored text
      */
     public fun restore(target: List<T>): List<T> {
         val result = target.toMutableList()
+        restoreToExisting(result)
+        return result
+    }
+
+    /**
+     * Restores all changes within the given target list.
+     * Opposite of the [applyToExisting] method.
+     *
+     * @param target The given target
+     * @return The restored text
+     */
+    @Suppress("MemberVisibilityCanBePrivate")
+    public fun restoreToExisting(target: MutableList<T>) {
         val it = deltas.listIterator(deltas.size)
 
         while (it.hasPrevious()) {
             val delta = it.previous()
-            delta.restore(result)
+            delta.restore(target)
         }
-
-        return result
     }
 
     /**
@@ -102,7 +124,7 @@ public class Patch<T>(private var conflictOutput: ConflictOutput<T> = ExceptionP
             var startRevised = 0
 
             val adjustedChanges = if (includeEquals) {
-                changes.sortedBy { it.startOriginal }
+                changes.sortedBy(Change::startOriginal)
             } else {
                 changes
             }
