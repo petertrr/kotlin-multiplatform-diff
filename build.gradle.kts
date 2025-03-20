@@ -4,9 +4,9 @@ import io.github.petertrr.configurePublishing
 import io.github.petertrr.ext.booleanProperty
 import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 
 plugins {
@@ -35,7 +35,7 @@ kotlin {
             compileTaskProvider.configure {
                 compilerOptions {
                     // Minimum bytecode level is 52
-                    jvmTarget = JvmTarget.JVM_1_8
+                    jvmTarget = JvmTarget.JVM_11
 
                     // Output interfaces with default methods
                     freeCompilerArgs.addAll(
