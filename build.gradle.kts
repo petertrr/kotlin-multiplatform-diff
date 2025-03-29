@@ -1,9 +1,5 @@
-@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
-
 import io.github.petertrr.configurePublishing
 import io.github.petertrr.ext.booleanProperty
-import io.gitlab.arturbosch.detekt.Detekt
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
@@ -26,8 +22,8 @@ kotlin {
     explicitApi()
 
     compilerOptions {
-        apiVersion = KotlinVersion.KOTLIN_1_9
-        languageVersion = KotlinVersion.KOTLIN_1_9
+        apiVersion = KotlinVersion.KOTLIN_2_1
+        languageVersion = KotlinVersion.KOTLIN_2_1
     }
 
     jvm {
@@ -35,7 +31,7 @@ kotlin {
             compileTaskProvider.configure {
                 compilerOptions {
                     // Minimum bytecode level is 52
-                    jvmTarget = JvmTarget.JVM_11
+                    jvmTarget = JvmTarget.JVM_1_8
 
                     // Output interfaces with default methods
                     freeCompilerArgs.addAll(
@@ -105,9 +101,7 @@ detekt {
 }
 
 tasks {
-    withType<Detekt> {
-        named("check") {
-            dependsOn(this@withType)
-        }
+    check {
+        dependsOn(detekt)
     }
 }
