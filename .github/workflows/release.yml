@@ -16,6 +16,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-tags: true
       - name: Get Kotlin version
         id: get-kotlin-version
         run: |
