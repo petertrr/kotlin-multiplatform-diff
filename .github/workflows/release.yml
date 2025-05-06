@@ -15,8 +15,15 @@ jobs:
     name: Build and publish release
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - name: Get Kotlin version
+        id: get-kotlin-version
+        run: |
+          echo "version=$(cat gradle/libs.versions.toml | grep -m1 kotlin | cut -d'=' -f2 - | tr -d ' "')" >> $GITHUB_OUTPUT
+      - uses: actions/cache@v4
+        with:
+          key: konan-${{ runner.os }}-${{ steps.get-kotlin-version.outputs.version }}
+          path: ~/.konan
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
