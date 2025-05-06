@@ -42,30 +42,6 @@ fun Project.configurePublishing() {
     if (hasProperty("sonatypeUsername")) {
         configureNexusPublishing()
     }
-
-    // https://kotlinlang.org/docs/mpp-publish-lib.html#avoid-duplicate-publications
-    // Publication with name `kotlinMultiplatform` is for the default artifact.
-    // `configureNexusPublishing` adds sonatype publication tasks inside `afterEvaluate`.
-    rootProject.afterEvaluate {
-        val publicationsFromMainHost = listOf("jvm", "js", "linuxX64", "kotlinMultiplatform", "metadata")
-        configure<PublishingExtension> {
-            publications.matching { it.name in publicationsFromMainHost }.all {
-                val targetPublication = this@all
-                tasks.withType<AbstractPublishToMaven>()
-                    .matching { it.publication == targetPublication }
-                    .configureEach {
-                        onlyIf {
-                            // main publishing CI job is executed on Linux host
-                            DefaultNativePlatform.getCurrentOperatingSystem().isLinux.apply {
-                                if (!this) {
-                                    logger.lifecycle("Publication ${(it as AbstractPublishToMaven).publication.name} is skipped on current host")
-                                }
-                            }
-                        }
-                    }
-                }
-        }
-    }
 }
 
 private fun Project.configurePublications() {
