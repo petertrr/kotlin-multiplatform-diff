@@ -18,6 +18,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - name: Get Kotlin version
+        id: get-kotlin-version
+        run: |
+          echo "version=$(cat gradle/libs.versions.toml | grep -m1 kotlin | cut -d'=' -f2 - | tr -d ' "')" >> $GITHUB_OUTPUT
+      - uses: actions/cache@v4
+        with:
+          key: konan-${{ runner.os }}-${{ steps.get-kotlin-version.outputs.version }}
+          path: ~/.konan
       - name: Set up JDK 11
         uses: actions/setup-java@v4
         with:
