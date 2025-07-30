@@ -6,7 +6,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.develocity") version ("3.19")
+    id("com.gradle.develocity") version ("4.1")
     id("org.ajoberstar.reckon.settings") version ("0.19.1")
 }
 
