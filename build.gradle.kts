@@ -7,7 +7,7 @@ plugins {
     kotlin("multiplatform")
     alias(libs.plugins.detekt)
     alias(libs.plugins.vanniktech)
-    id("jacoco-convention")
+    jacoco
 }
 
 group = "io.github.petertrr"
@@ -167,6 +167,10 @@ mavenPublishing {
     }
 }
 
+jacoco {
+    toolVersion = "0.8.13"
+}
+
 detekt {
     buildUponDefaultConfig = true
     config.setFrom(files("detekt.yml"))
@@ -176,5 +180,26 @@ detekt {
 tasks {
     check {
         dependsOn(detekt)
+    }
+
+    val jvmTest = named<Test>("jvmTest")
+    val jacocoReport = register<JacocoReport>("jacocoTestReport") {
+        dependsOn(jvmTest)
+
+        val commonMainSources = kotlin.sourceSets["commonMain"].kotlin.sourceDirectories
+        val jvmMainSources = kotlin.sourceSets["jvmMain"].kotlin.sourceDirectories
+
+        sourceDirectories.setFrom(files(commonMainSources, jvmMainSources))
+        classDirectories.setFrom(layout.buildDirectory.file("classes/kotlin/jvm/main"))
+        executionData.setFrom(layout.buildDirectory.files("jacoco/jvmTest.exec"))
+
+        reports {
+            xml.required = true
+            html.required = true
+        }
+    }
+
+    jvmTest.configure {
+        finalizedBy(jacocoReport)
     }
 }
