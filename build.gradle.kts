@@ -4,7 +4,8 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 
 plugins {
-    kotlin("multiplatform")
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.dokka)
     alias(libs.plugins.detekt)
     alias(libs.plugins.vanniktech)
     jacoco
