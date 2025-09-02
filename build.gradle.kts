@@ -174,7 +174,7 @@ jacoco {
 detekt {
     buildUponDefaultConfig = true
     config.setFrom(files("detekt.yml"))
-    autoCorrect = booleanProperty("detektAutoCorrect", default = true)
+    autoCorrect = project.providers.gradleProperty("detektAutoCorrect").map(String::toBoolean).getOrElse(true)
 }
 
 tasks {
