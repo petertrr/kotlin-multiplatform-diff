@@ -2,10 +2,11 @@
 kotlin = "2.2.20-RC2"
 detekt = "1.23.8"
 dokka = "2.1.0-Beta"
-nexus = "2.0.0"
+vanniktech = "0.34.0"
 
 [plugins]
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+vanniktech = { id = "com.vanniktech.maven.publish", version.ref = "vanniktech" }
 
 [libraries]
 detekt-formatting = { group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version.ref = "detekt" }
@@ -13,4 +14,3 @@ detekt-formatting = { group = "io.gitlab.arturbosch.detekt", name = "detekt-form
 # Gradle plugins
 kotlin-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 dokka-plugin = { group = "org.jetbrains.dokka", name = "dokka-gradle-plugin", version.ref = "dokka" }
-nexus-plugin = { group = "io.github.gradle-nexus", name = "publish-plugin", version.ref = "nexus" }

@@ -1,5 +1,3 @@
-import io.github.petertrr.configurePublishing
-import io.github.petertrr.ext.booleanProperty
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
@@ -8,6 +6,7 @@ import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 plugins {
     kotlin("multiplatform")
     alias(libs.plugins.detekt)
+    alias(libs.plugins.vanniktech)
     id("jacoco-convention")
 }
 
@@ -116,7 +115,57 @@ kotlin {
     }
 }
 
-configurePublishing()
+mavenPublishing {
+    coordinates(
+        groupId = project.group.toString(),
+        artifactId = project.name,
+        version = project.version.toString(),
+    )
+
+    // Publishing to Maven Central requires the following Gradle properties:
+    //   mavenCentralUsername=central_username
+    //   mavenCentralPassword=central_password
+    publishToMavenCentral()
+
+    // Signing is enabled only if the key is actually provided.
+    // We do not want missing signing info to block publication to local.
+    val signingKey = project.providers.gradleProperty("signingInMemoryKey")
+
+    if (signingKey.isPresent) {
+        // Signing requires the following Gradle properties:
+        //   signingInMemoryKeyId=pgp_key_id
+        //   signingInMemoryKey=pgp_key
+        //   signingInMemoryKeyPassword=pgp_key_password
+        signAllPublications()
+    }
+
+    pom {
+        name.set(project.name)
+        description.set(project.description)
+        url.set("https://github.com/petertrr/kotlin-multiplatform-diff")
+
+        licenses {
+            license {
+                name.set("The Apache Software License, Version 2.0")
+                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                distribution.set("repo")
+            }
+        }
+
+        developers {
+            developer {
+                id.set("petertrr")
+                name.set("Petr Trifanov")
+                email.set("peter.trifanov@mail.ru")
+            }
+        }
+
+        scm {
+            url.set("https://github.com/petertrr/kotlin-multiplatform-diff")
+            connection.set("scm:git:git://github.com/petertrr/kotlin-multiplatform-diff.git")
+        }
+    }
+}
 
 detekt {
     buildUponDefaultConfig = true

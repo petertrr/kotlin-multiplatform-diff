@@ -5,10 +5,13 @@ on:
     tags:
       - 'v*'
 env:
-  GPG_SEC: ${{ secrets.PGP_SEC }}
-  GPG_PASSWORD: ${{ secrets.PGP_PASSWORD }}
-  OSSRH_USERNAME: ${{ secrets.SONATYPE_USER }}
-  OSSRH_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+  # TODO: required to use the in-memory PGP key.
+  # See https://github.com/vanniktech/gradle-maven-publish-plugin/issues/253#issuecomment-841637159
+  # ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.PGP_KEY_ID }}
+  ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.PGP_SEC }}
+  ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.PGP_PASSWORD }}
+  ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.SONATYPE_USER }}
+  ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.SONATYPE_PASSWORD }}
 
 jobs:
   release:
@@ -35,4 +38,4 @@ jobs:
         with:
           gradle-version: wrapper
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
-      - run: ./gradlew publishToSonatype closeSonatypeStagingRepository
+      - run: ./gradlew publishToMavenCentral
