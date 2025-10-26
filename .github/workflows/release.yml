@@ -4,8 +4,6 @@ on:
   push:
     tags:
       - 'v*'
-  # TODO: only for testing
-  pull_request:
 
 env:
   # See https://vanniktech.github.io/gradle-maven-publish-plugin/central for the list of required properties
