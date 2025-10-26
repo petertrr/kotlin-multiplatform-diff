@@ -157,7 +157,7 @@ mavenPublishing {
             developer {
                 id.set("petertrr")
                 name.set("Petr Trifanov")
-                email.set("peter.trifanov@mail.ru")
+                email.set("peter.trifanov@gmail.com")
             }
         }
 

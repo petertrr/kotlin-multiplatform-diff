@@ -4,14 +4,14 @@ on:
   push:
     tags:
       - 'v*'
+
 env:
-  # TODO: required to use the in-memory PGP key.
-  # See https://github.com/vanniktech/gradle-maven-publish-plugin/issues/253#issuecomment-841637159
-  # ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.PGP_KEY_ID }}
+  # See https://vanniktech.github.io/gradle-maven-publish-plugin/central for the list of required properties
+  ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ vars.PGP_KEY_ID }}
   ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.PGP_SEC }}
   ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.PGP_PASSWORD }}
-  ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.SONATYPE_USER }}
-  ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.SONATYPE_PASSWORD }}
+  ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.CENTRAL_PORTAL_USER }}
+  ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.CENTRAL_PORTAL_PASSWORD }}
 
 jobs:
   release:
