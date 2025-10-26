@@ -4,10 +4,11 @@ on:
   push:
     tags:
       - 'v*'
+  # TODO: only for testing
+  pull_request:
 
 env:
   # See https://vanniktech.github.io/gradle-maven-publish-plugin/central for the list of required properties
-  ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ vars.PGP_KEY_ID }}
   ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.PGP_SEC }}
   ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.PGP_PASSWORD }}
   ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.CENTRAL_PORTAL_USER }}
