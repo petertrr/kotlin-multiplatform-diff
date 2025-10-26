@@ -7,7 +7,7 @@ pluginManagement {
 
 plugins {
     id("com.gradle.develocity") version ("4.1")
-    id("org.ajoberstar.reckon.settings") version ("1.0.0")
+    id("org.ajoberstar.reckon.settings") version ("1.0.1")
 }
 
 rootProject.name = "kotlin-multiplatform-diff"
