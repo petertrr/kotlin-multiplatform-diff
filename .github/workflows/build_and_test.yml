@@ -26,11 +26,11 @@ jobs:
         with:
           key: konan-${{ runner.os }}-${{ steps.get-kotlin-version.outputs.version }}
           path: ~/.konan
-      - name: Set up JDK 11
+      - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 11
+          java-version: 21
       - uses: gradle/actions/setup-gradle@v5
         name: Setup Gradle
         with:
