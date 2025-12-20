@@ -1,7 +1,13 @@
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootEnvSpec
+import org.jetbrains.kotlin.gradle.targets.wasm.yarn.WasmYarnPlugin
+import org.jetbrains.kotlin.gradle.targets.wasm.yarn.WasmYarnRootEnvSpec
+import org.jetbrains.kotlin.gradle.targets.web.yarn.BaseYarnRootEnvSpec
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -21,20 +27,17 @@ dependencies {
 kotlin {
     explicitApi()
     compilerOptions {
-        apiVersion = KotlinVersion.KOTLIN_2_2
-        languageVersion = KotlinVersion.KOTLIN_2_2
+        apiVersion = KotlinVersion.KOTLIN_2_3
+        languageVersion = KotlinVersion.KOTLIN_2_3
     }
 
     jvm {
         compilations.configureEach {
             compileTaskProvider.configure {
                 compilerOptions {
-                    // Minimum bytecode level is 52
-                    jvmTarget = JvmTarget.JVM_1_8
-
-                    // Output interfaces with default methods
+                    jvmTarget = JvmTarget.JVM_1_8 // Minimum bytecode level is 52
+                    jvmDefault = JvmDefaultMode.NO_COMPATIBILITY // Output interfaces with default methods
                     freeCompilerArgs.addAll(
-                        "-Xjvm-default=all",      // Output interfaces with default methods
                         "-Xno-param-assertions",  // Remove Intrinsics.checkNotNullParameter
                     )
                 }
@@ -204,3 +207,16 @@ tasks {
         finalizedBy(jacocoReport)
     }
 }
+
+val yarnConfig: BaseYarnRootEnvSpec.() -> Unit = {
+    // Use the latest version of Yarn Classic
+    version = "1.22.22"
+
+    // Disable a nagging console error.
+    // See https://youtrack.jetbrains.com/issue/KT-52578
+    ignoreScripts = false
+}
+
+// Configure Yarn for all K/JS and K/WASM modules
+plugins.withType<YarnPlugin> { the<YarnRootEnvSpec>().apply(yarnConfig) }
+plugins.withType<WasmYarnPlugin> { the<WasmYarnRootEnvSpec>().apply(yarnConfig) }
