@@ -212,9 +212,11 @@ val yarnConfig: BaseYarnRootEnvSpec.() -> Unit = {
     // Use the latest version of Yarn Classic
     version = "1.22.22"
 
-    // Disable a nagging console error.
-    // See https://youtrack.jetbrains.com/issue/KT-52578
-    ignoreScripts = false
+    // This was previously set to false to avoid a nagging error message,
+    // but we agreed on setting it to true (the default) to avoid possible
+    // malicious scripts.
+    // See review on https://github.com/petertrr/kotlin-multiplatform-diff/pull/155
+    ignoreScripts = true
 }
 
 // Configure Yarn for all K/JS and K/WASM modules
