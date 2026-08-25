@@ -17,21 +17,21 @@ jobs:
       CI: true
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Get Kotlin version
         id: get-kotlin-version
         run: |
           echo "version=$(cat gradle/libs.versions.toml | grep -m1 kotlin | cut -d'=' -f2 - | tr -d ' "')" >> $GITHUB_OUTPUT
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           key: konan-${{ runner.os }}-${{ steps.get-kotlin-version.outputs.version }}
           path: ~/.konan
       - name: Set up JDK 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v5
+      - uses: gradle/actions/setup-gradle@v6
         name: Setup Gradle
         with:
           gradle-version: wrapper
@@ -41,12 +41,12 @@ jobs:
         run: ./gradlew check build -x detekt -Pdetekt.multiplatform.disabled=true --scan
       - name: Upload test reports
         if: ${{ failure() }}  # runs only if previous step has failed, the entire workflow will still be marked as failed
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: gradle-test-report
           path: '**/build/reports/'
       - name: Code coverage report
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
