@@ -17,23 +17,23 @@ jobs:
     name: Build and publish release
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Get Kotlin version
         id: get-kotlin-version
         run: |
           echo "version=$(cat gradle/libs.versions.toml | grep -m1 kotlin | cut -d'=' -f2 - | tr -d ' "')" >> $GITHUB_OUTPUT
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           key: konan-${{ runner.os }}-${{ steps.get-kotlin-version.outputs.version }}
           path: ~/.konan
       - name: Set up JDK
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v5
+      - uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: wrapper
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
