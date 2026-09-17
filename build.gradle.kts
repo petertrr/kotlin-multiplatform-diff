@@ -186,7 +186,7 @@ mavenPublishing {
 }
 
 jacoco {
-    toolVersion = "0.8.14"
+    toolVersion = "0.8.15"
 }
 
 detekt {
@@ -202,6 +202,7 @@ tasks {
 
     val jvmTest = named<Test>("jvmTest")
     val jacocoReport = register<JacocoReport>("jacocoTestReport") {
+        description = "Creates a JaCoCo coverage report for the JVM tests"
         dependsOn(jvmTest)
 
         val commonMainSources = kotlin.sourceSets["commonMain"].kotlin.sourceDirectories
