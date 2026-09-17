@@ -81,10 +81,10 @@ class DiffRowGeneratorTest {
         val rows: List<DiffRow> = generator.generateDiffRows(first.lines(), second.lines())
         print(rows)
         assertEquals(4, rows.size)
-        assertEquals(rows[0].tag, DiffRow.Tag.EQUAL)
-        assertEquals(rows[1].tag, DiffRow.Tag.EQUAL)
-        assertEquals(rows[2].tag, DiffRow.Tag.EQUAL)
-        assertEquals(rows[3].tag, DiffRow.Tag.CHANGE)
+        assertEquals(DiffRow.Tag.EQUAL, rows[0].tag)
+        assertEquals(DiffRow.Tag.EQUAL, rows[1].tag)
+        assertEquals(DiffRow.Tag.EQUAL, rows[2].tag)
+        assertEquals(DiffRow.Tag.CHANGE, rows[3].tag)
     }
 
     @Test
@@ -751,7 +751,7 @@ Bengal tiger panther but singapura but bombay munchkin for cougar. And more.""".
 
         val diffRows = generator.generateDiffRows(lines1, lines2)
         val txt = diffRows.joinToString(separator = " ") { row -> row.tag.toString() }
-        assertEquals(txt, "EQUAL EQUAL EQUAL CHANGE INSERT INSERT EQUAL EQUAL EQUAL")
+        assertEquals("EQUAL EQUAL EQUAL CHANGE INSERT INSERT EQUAL EQUAL EQUAL", txt)
     }
 
     @Test
@@ -787,7 +787,7 @@ Bengal tiger panther but singapura but bombay munchkin for cougar. And more.""".
 
         val diffRows = generator.generateDiffRows(lines1, lines2)
         val txt = diffRows.joinToString(separator = " ") { row -> row.tag.toString() }
-        assertEquals(txt, "EQUAL EQUAL EQUAL CHANGE CHANGE CHANGE EQUAL EQUAL EQUAL")
+        assertEquals("EQUAL EQUAL EQUAL CHANGE CHANGE CHANGE EQUAL EQUAL EQUAL", txt)
     }
 
     private class MarkdownTagGenerator(val str: String) : DiffTagGenerator {

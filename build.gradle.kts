@@ -27,8 +27,9 @@ dependencies {
 kotlin {
     explicitApi()
     compilerOptions {
-        apiVersion = KotlinVersion.KOTLIN_2_3
-        languageVersion = KotlinVersion.KOTLIN_2_3
+        val kotlinVersion = KotlinVersion.KOTLIN_2_4
+        apiVersion = kotlinVersion
+        languageVersion = kotlinVersion
     }
 
     jvm {
@@ -79,36 +80,49 @@ kotlin {
         nodejs()
     }
 
+    //
     // Tier 1
-    macosX64()
+    //
+    // macOS host only
     macosArm64()
     iosSimulatorArm64()
-    iosX64()
     iosArm64()
 
+    //
     // Tier 2
+    //
     linuxX64()
     linuxArm64()
+
+    // macOS host only
     watchosSimulatorArm64()
-    watchosX64()
-    watchosArm32()
     watchosArm64()
     tvosSimulatorArm64()
-    tvosX64()
     tvosArm64()
 
+    //
     // Tier 3
+    //
     mingwX64()
     androidNativeArm32()
     androidNativeArm64()
     androidNativeX86()
     androidNativeX64()
+
+    // macOS host only
+    iosX64()
     watchosDeviceArm64()
 
-    // Deprecated.
-    // Should follow the same route as official Kotlin libraries
-    @Suppress("DEPRECATION")
-    linuxArm32Hfp()
+    //
+    // Deprecated - scheduled for removal
+    //
+    @Suppress("DEPRECATION") run {
+        watchosArm32()
+        macosX64()
+        watchosX64()
+        tvosX64()
+        linuxArm32Hfp()
+    }
 
     sourceSets {
         commonTest {
@@ -172,7 +186,7 @@ mavenPublishing {
 }
 
 jacoco {
-    toolVersion = "0.8.14"
+    toolVersion = "0.8.15"
 }
 
 detekt {
@@ -188,6 +202,7 @@ tasks {
 
     val jvmTest = named<Test>("jvmTest")
     val jacocoReport = register<JacocoReport>("jacocoTestReport") {
+        description = "Creates a JaCoCo coverage report for the JVM tests"
         dependsOn(jvmTest)
 
         val commonMainSources = kotlin.sourceSets["commonMain"].kotlin.sourceDirectories
